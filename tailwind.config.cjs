@@ -2,7 +2,31 @@
 module.exports = {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        Inter: [
+          'Inter',
+          'sans-serif',
+          'ui-sans-serif',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Oxygen',
+          'Ubuntu',
+          'Cantarell',
+          'Fira Sans',
+          'Droid Sans',
+          'Helvetica Neue',
+          'sans-serif',
+        ],
+      },
+    },
   },
-  plugins: [],
+  plugins: [require('daisyui')],
+
+  daisyui: {
+    themes: ['night'],
+  },
 }
