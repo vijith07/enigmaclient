@@ -1,15 +1,24 @@
-<script lang= "ts">
-  import Navbar from './lib/containers/Navbar.svelte'
-  import Footer from './lib/containers/Footer.svelte';
-  import Hero from './lib/containers/Hero.svelte'
+<script lang="ts">
+  // @ts-ignore
+  import { Router, Route, Link } from "svelte-navigator";
+  import Home from "./lib/pages/Home.svelte"
+  import Login from "./lib/pages/Login.svelte"
+  import Signup from "./lib/pages/Signup.svelte"
 </script>
 
 <main class="font-Inter">
-<Navbar />
+  <Router>
+    <Route path="/">
+      <Home />
+    </Route>
+    <Route path="/login">
+      <Login />
+    </Route>
+    <Route path="/signup">
+      <Signup />
+    </Route>
+  </Router>
 
-<Hero />
-
-<Footer />
 </main>
 
 
