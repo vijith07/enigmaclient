@@ -2,9 +2,11 @@
 <script async script>
   import { Link } from 'svelte-navigator'
   // @ts-ignore
-  import { generateRSAKeyPair } from '../../utils/rsaKeyPairGenerator'
   import { generatePBKDF2Hash } from '../../utils/pbkdf2HashGenerator'
+  import { rsaGenerateKeyPair } from '../../utils/rsaProvider'
   import {onMount} from 'svelte'
+  import { fromBufferToByteString, toBuf, toByteString } from '../../utils/common'
+  import { aesEncrypt } from '../../utils/aesProvider'
 
     // generate a pbdf2 hash of the master password if the user has entered a master password and confirmed it
 
@@ -14,6 +16,14 @@
 
     // store the encrypted private key , the public key, the email, the name, and the password hint in the database
 
+    onMount(async () => {
+      const keyPair = await rsaGenerateKeyPair(1024)
+      console.log(keyPair[0])
+      console.log(keyPair[1])
+      const hash = await generatePBKDF2Hash('password', 'salt', 600000, "sha256" )
+      console.log(hash)
+      // const encryptedPrivateKey = await aesEncrypt(toBuf(keyPair[1]),
+    })
 
 
   let name = ''

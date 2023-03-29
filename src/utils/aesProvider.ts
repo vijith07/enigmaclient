@@ -1,23 +1,40 @@
-import crypto from "crypto";
+import crypto from 'crypto'
 
-export function generateAESKey() {
-    return crypto.randomBytes(32).toString("hex");
+
+export async function aesEncrypt(
+  data: ArrayBuffer,
+  iv: ArrayBuffer,
+  key: ArrayBuffer
+): Promise<ArrayBuffer> {
+  const impKey = await window.crypto.subtle.importKey(
+    'raw',
+    key,
+    { name: 'AES-CBC' } as any,
+    false,
+    ['encrypt']
+  )
+  return await window.crypto.subtle.encrypt(
+    { name: 'AES-CBC', iv: iv },
+    impKey,
+    data
+  )
 }
 
-export function encryptAES(text: string, key: string) {
-    let iv = crypto.randomBytes(16);
-    let cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(key, "hex"), iv);
-    let encrypted = cipher.update(text);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return iv.toString("hex") + ":" + encrypted.toString("hex");
-}
-
-export function decryptAES(text: string, key: string) {
-    let textParts = text.split(":");
-    let iv = Buffer.from(textParts.shift(), "hex");
-    let encryptedText = Buffer.from(textParts.join(":"), "hex");
-    let decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(key, "hex"), iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+export async function aesDecrypt(
+  data: ArrayBuffer,
+  iv: ArrayBuffer,
+  key: ArrayBuffer
+): Promise<ArrayBuffer> {
+  const impKey = await window.crypto.subtle.importKey(
+    'raw',
+    key,
+    { name: 'AES-CBC' } as any,
+    false,
+    ['decrypt']
+  )
+  return await window.crypto.subtle.decrypt(
+    { name: 'AES-CBC', iv: iv },
+    impKey,
+    data
+  )
 }
