@@ -2,41 +2,74 @@
 <script async script>
   import { Link } from 'svelte-navigator'
   // @ts-ignore
+  import { passwordStrengthCalculator } from '../../utils/passwordUtils'
   import { generatePBKDF2Hash } from '../../utils/pbkdf2HashGenerator'
   import { rsaGenerateKeyPair } from '../../utils/rsaProvider'
-  import {onMount} from 'svelte'
-  import { fromBufferToByteString, toBuf, toByteString } from '../../utils/common'
+  import { onMount } from 'svelte'
+  import {
+    fromBufferToByteString,
+    toBuf,
+    toByteString,
+  } from '../../utils/common'
   import { aesEncrypt } from '../../utils/aesProvider'
+  import Input from '../components/Input.svelte'
 
-    // generate a pbdf2 hash of the master password if the user has entered a master password and confirmed it
+  // generate a pbdf2 hash of the master password if the user has entered a master password and confirmed it
 
-    // generate a rsa key pair on mount
+  // generate a rsa key pair on mount
 
-    // encrypt the private key with the pbdf2 hash of the master password
+  // encrypt the private key with the pbdf2 hash of the master password
 
-    // store the encrypted private key , the public key, the email, the name, and the password hint in the database
+  // store the encrypted private key , the public key, the email, the name, and the password hint in the database
 
-    onMount(async () => {
-      const keyPair = await rsaGenerateKeyPair(1024)
-      console.log(keyPair[0])
-      console.log(keyPair[1])
-      const hash = await generatePBKDF2Hash('password', 'salt', 600000, "sha256" )
-      console.log(hash)
-      // const encryptedPrivateKey = await aesEncrypt(toBuf(keyPair[1]),
-    })
-
+  onMount(async () => {
+    const keyPair = await rsaGenerateKeyPair(1024)
+    console.log(keyPair[0])
+    console.log(keyPair[1])
+    const hash = await generatePBKDF2Hash('password', 'salt', 600000, 'sha256')
+    console.log(hash)
+    // const encryptedPrivateKey = await aesEncrypt(toBuf(keyPair[1]),
+  })
 
   let name = ''
   let email = ''
   let masterPassword = ''
   let confirmMasterPassword = ''
   let passwordHint = ''
+  // calculate the strength of the password
+  // 0 - 25 = weak
+  // 25 - 50 = medium
+  // 50 - 75 = strong
+  // 75 - 100 = very strong
+  let passwordStrength = 0
+  let passwordStrengthProgress = '0'
+  let passwordStrengthText = ''
+  let passwordStrengthColor = 'progress-error'
+
+  $: if (masterPassword.length > 0) {
+    passwordStrength = passwordStrengthCalculator(masterPassword)
+    console.log(passwordStrength)
+    if (passwordStrength < 20) {
+      passwordStrengthText = 'Very Weak'
+      passwordStrengthColor = 'progress-error'
+    } else if (passwordStrength < 50) {
+      passwordStrengthText = 'Weak'
+      passwordStrengthColor = 'progress-warning'
+    } else if (passwordStrength < 70) {
+      passwordStrengthText = 'Strong'
+      passwordStrengthColor = 'progress-info'
+    } else {
+      passwordStrengthText = 'Very Strong'
+      passwordStrengthColor = 'progress-success'
+    }
+    passwordStrengthProgress = passwordStrength.toString()
+  }
 </script>
 
 <!-- Create Account Form -->
 
 <div
-  class="flex min-h-screen flex-col items-center gap-4 bg-gradient-to-t from-slate-800 to-base-200"
+  class="flex min-h-screen flex-col items-center gap-2 bg-gradient-to-b from-slate-800 to-base-200"
 >
   <div class="flex flex-col items-center gap-4 mt-10">
     <Link to="/" class=" text-3xl flex items-center gap-2">
@@ -56,73 +89,65 @@
     </Link>
     <div class="text-xl font-bold text-white">Create Account</div>
   </div>
-  <div class="card flex-shrink-0 w-1/4 shadow-2xl bg-base-100">
+  <div class="card flex-shrink-0 shadow-2xl bg-base-100">
     <div class="card-body">
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">Email</span>
-        </label>
-        <input
-          type="email"
-          placeholder="email"
-          class="input input-bordered"
-          id="email"
-          bind:value={email}
-        />
-      </div>
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">Name</span>
-        </label>
-        <input
-          type="text"
-          placeholder="name"
-          class="input input-bordered"
-          id="name"
-          bind:value={name}
-        />
-      </div>
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">Master Password</span>
-        </label>
-        <input
-          type="password"
-          placeholder="password"
-          class="input input-bordered"
-          id="masterPassword"
-          bind:value={masterPassword}
-        />
-      </div>
+      <Input
+        label="Email"
+        id="email"
+        bind:value={email}
+        topRightLabel="Required"
+        bottomLeftLabel="You will use this to login."
+      />
 
+      <Input
+        label="Name"
+        id="name"
+        bind:value={name}
+        bottomLeftLabel="What should we call you?"
+      />
+
+      <Input
+        label="Master Password"
+        id="masterPassword"
+        bind:value={masterPassword}
+        bottomLeftLabel="Your master password cannot be recovered if you forget it! 12 character minimum"
+        type="password"
+      />
+
+      <!-- password strength meter -->
       <div class="form-control">
+        <!-- // value is the password strength -->
+        <!--  conditionally render the color of the progress bar based on the strength -->
         <label class="label">
-          <span class="label-text">Confirm Master Password</span>
+          <span class="label-text">Password Strength</span>
+          <span class="label-text-alt">{passwordStrengthText}</span>
         </label>
-        <input
-          type="password"
-          placeholder="password"
-          class="input input-bordered"
-          id="confirmMasterPassword"
-          bind:value={confirmMasterPassword}
-        />
+        <progress
+          class={`progress ${passwordStrengthColor}`}
+          value={passwordStrengthProgress}
+          max="100"
+        >
+          {passwordStrengthText}
+        </progress>
       </div>
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">Master Password Hint</span>
-        </label>
-        <input
-          type="text"
-          class="input input-bordered"
-          id="hint"
-          bind:value={confirmMasterPassword}
-        />
-      </div>
+      <Input
+        label="Confirm Master Password"
+        id="confirmMasterPassword"
+        bind:value={confirmMasterPassword}
+        bottomLeftLabel="Confirm your master password"
+        type="password"
+      />
+      <Input
+        label="Password Hint"
+        id="passwordHint"
+        bind:value={passwordHint}
+        bottomLeftLabel="A hint to help you remember your master password"
+      />
     </div>
     <div class="form-control flex flex-col items-center">
       <button class="btn btn-primary w-1/2 m-2">Create Account</button>
       <Link to="/login" class="btn btn-ghost m-2">Login</Link>
     </div>
   </div>
-  <div>© 2023 Enigma. All rights reserved.</div>
+  <div class="my-2">© 2023 Enigma. All rights reserved.</div>
 </div>
