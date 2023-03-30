@@ -41,7 +41,7 @@
     {value}
     on:input={handleInput}
   />
-  {#if error}
+  {#if error.length > 0}
     <p class="text-error p-2">{error}</p>
   {/if}
   <!-- svelte-ignore a11y-label-has-associated-control -->

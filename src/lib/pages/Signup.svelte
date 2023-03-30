@@ -3,39 +3,28 @@
   import { Link } from 'svelte-navigator'
   // @ts-ignore
   import { passwordStrengthCalculator } from '../../utils/passwordUtils'
-  import { generatePBKDF2Hash } from '../../utils/pbkdf2HashGenerator'
-  import { rsaGenerateKeyPair } from '../../utils/rsaProvider'
-  import { onMount } from 'svelte'
-  import {
-    fromBufferToByteString,
-    toBuf,
-    toByteString,
-  } from '../../utils/common'
-  import { aesEncrypt } from '../../utils/aesProvider'
   import Input from '../components/Input.svelte'
-
-  // generate a pbdf2 hash of the master password if the user has entered a master password and confirmed it
-
-  // generate a rsa key pair on mount
-
-  // encrypt the private key with the pbdf2 hash of the master password
-
-  // store the encrypted private key , the public key, the email, the name, and the password hint in the database
-
-  onMount(async () => {
-    const keyPair = await rsaGenerateKeyPair(1024)
-    console.log(keyPair[0])
-    console.log(keyPair[1])
-    const hash = await generatePBKDF2Hash('password', 'salt', 600000, 'sha256')
-    console.log(hash)
-    // const encryptedPrivateKey = await aesEncrypt(toBuf(keyPair[1]),
-  })
+  import PasswordInput from '../components/PasswordInput.svelte'
+  import { createAccount } from '../../services/createAccount'
+  // onMount(async () => {
+  //   const keyPair = await rsaGenerateKeyPair(1024)
+  //   console.log(keyPair[0])
+  //   console.log(keyPair[1])
+  //   const hash = await generatePBKDF2Hash('password', 'salt', 600000, 'sha256')
+  //   console.log(hash)
+  //   // const encryptedPrivateKey = await aesEncrypt(toBuf(keyPair[1]),
+  // })
 
   let name = ''
   let email = ''
   let masterPassword = ''
   let confirmMasterPassword = ''
   let passwordHint = ''
+
+  let emailError = ''
+  let masterPasswordError = ''
+  let confirmMasterPasswordError = ''
+
   // calculate the strength of the password
   // 0 - 25 = weak
   // 25 - 50 = medium
@@ -47,7 +36,7 @@
   let passwordStrengthColor = 'progress-error'
 
   $: if (masterPassword.length > 0) {
-    passwordStrength = passwordStrengthCalculator(masterPassword)
+    passwordStrength = passwordStrengthCalculator(masterPassword).strength
     console.log(passwordStrength)
     if (passwordStrength < 20) {
       passwordStrengthText = 'Very Weak'
@@ -63,6 +52,49 @@
       passwordStrengthColor = 'progress-success'
     }
     passwordStrengthProgress = passwordStrength.toString()
+  }
+
+  // validate the inputs on submit
+  const validateInputs = () => {
+    emailError = ''
+    masterPasswordError = ''
+    confirmMasterPasswordError = ''
+    if (email.length === 0) {
+      emailError = 'Email is required'
+      return false
+    }
+    // check if the email is valid using a regex
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      emailError = 'Invalid email'
+      return false
+    }
+    if (masterPassword.length < 12) {
+      masterPasswordError = 'Password must be at least 12 characters long'
+      return false
+    }
+    // check if the master password is weak
+    if (passwordStrength < 50) {
+      masterPasswordError = 'Password is too weak'
+      return false
+    }
+    if (masterPassword !== confirmMasterPassword) {
+      confirmMasterPasswordError = 'Passwords do not match'
+      return false
+    }
+    return true
+  }
+
+  let res = null
+  // submit the form
+  const submitForm = async () => {
+    if (validateInputs()) {
+      // clear the errors
+      emailError = ''
+      masterPasswordError = ''
+      confirmMasterPasswordError = ''
+      // create the account
+      res = await createAccount(email, masterPassword, passwordHint, name)
+    }
   }
 </script>
 
@@ -96,6 +128,7 @@
         id="email"
         bind:value={email}
         topRightLabel="Required"
+        error={emailError}
         bottomLeftLabel="You will use this to login."
       />
 
@@ -106,12 +139,14 @@
         bottomLeftLabel="What should we call you?"
       />
 
-      <Input
+      <PasswordInput
         label="Master Password"
         id="masterPassword"
         bind:value={masterPassword}
         bottomLeftLabel="Your master password cannot be recovered if you forget it! 12 character minimum"
         type="password"
+        error={masterPasswordError}
+        showPasswordToggle
       />
 
       <!-- password strength meter -->
@@ -130,12 +165,14 @@
           {passwordStrengthText}
         </progress>
       </div>
-      <Input
+      <PasswordInput
         label="Confirm Master Password"
         id="confirmMasterPassword"
         bind:value={confirmMasterPassword}
         bottomLeftLabel="Confirm your master password"
         type="password"
+        error={confirmMasterPasswordError}
+        showPasswordToggle
       />
       <Input
         label="Password Hint"
@@ -145,9 +182,26 @@
       />
     </div>
     <div class="form-control flex flex-col items-center">
-      <button class="btn btn-primary w-1/2 m-2">Create Account</button>
+      <button
+        class="btn btn-primary w-1/2 m-2"
+        type="submit"
+        on:click={submitForm}
+      >
+        Create Account
+      </button>
       <Link to="/login" class="btn btn-ghost m-2">Login</Link>
     </div>
   </div>
   <div class="my-2">© 2023 Enigma. All rights reserved.</div>
 </div>
+
+<!--  display contents in res if it is not null -->
+
+{#if res}
+  <div class="card">
+    <div class="card-body">
+      <pre>{JSON.stringify(res, null, 2)}</pre>
+    </div>
+  </div>
+{/if}
+
