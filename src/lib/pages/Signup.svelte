@@ -21,6 +21,7 @@
   let passwordStrengthText = ''
   let passwordStrengthColor = 'progress-error'
   let passwordStrengthWarning = ''
+  let passwordTimeToCrack = ''
   let passwordStrengthSuggestions = []
 
   $: if (masterPassword.length > 0) {
@@ -29,6 +30,7 @@
     passwordStrengthText = passwordStrengthDetails.message
     passwordStrengthSuggestions = passwordStrengthDetails.suggestions
     passwordStrengthWarning = passwordStrengthDetails.warning
+    passwordTimeToCrack = passwordStrengthDetails.timeToCrack.toString()
     passwordStrengthColor =
       passwordStrength < 25
         ? 'progress-error'
@@ -152,6 +154,14 @@
           {passwordStrengthText}
         </progress>
       </div>
+
+      <!-- time to crack password -->
+      {#if masterPassword.length>0}
+        <div class="text-xs text-gray-500">
+          Time to crack: {passwordTimeToCrack}
+        </div>
+      {/if}
+
       {#if masterPassword.length>0 && passwordStrengthWarning}
         <div class="text-xs text-red-500">{passwordStrengthWarning}</div>
       {/if}
