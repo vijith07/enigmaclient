@@ -6,6 +6,7 @@
   import Input from '../components/Input.svelte'
   import PasswordInput from '../components/PasswordInput.svelte'
   import { createAccount } from '../../services/createAccount'
+  // import PasswordStrength from '../components/PasswordStrength.svelte'
   // onMount(async () => {
   //   const keyPair = await rsaGenerateKeyPair(1024)
   //   console.log(keyPair[0])
@@ -24,33 +25,27 @@
   let emailError = ''
   let masterPasswordError = ''
   let confirmMasterPasswordError = ''
-
-  // calculate the strength of the password
-  // 0 - 25 = weak
-  // 25 - 50 = medium
-  // 50 - 75 = strong
-  // 75 - 100 = very strong
   let passwordStrength = 0
   let passwordStrengthProgress = '0'
   let passwordStrengthText = ''
   let passwordStrengthColor = 'progress-error'
+  let passwordStrengthWarning = ''
+  let passwordStrengthSuggestions = []
 
   $: if (masterPassword.length > 0) {
-    passwordStrength = passwordStrengthCalculator(masterPassword).strength
-    console.log(passwordStrength)
-    if (passwordStrength < 20) {
-      passwordStrengthText = 'Very Weak'
-      passwordStrengthColor = 'progress-error'
-    } else if (passwordStrength < 50) {
-      passwordStrengthText = 'Weak'
-      passwordStrengthColor = 'progress-warning'
-    } else if (passwordStrength < 70) {
-      passwordStrengthText = 'Strong'
-      passwordStrengthColor = 'progress-info'
-    } else {
-      passwordStrengthText = 'Very Strong'
-      passwordStrengthColor = 'progress-success'
-    }
+    const passwordStrengthDetails = passwordStrengthCalculator(masterPassword)
+    passwordStrength = passwordStrengthDetails.strength
+    passwordStrengthText = passwordStrengthDetails.message
+    passwordStrengthSuggestions = passwordStrengthDetails.suggestions
+    passwordStrengthWarning = passwordStrengthDetails.warning
+    passwordStrengthColor =
+      passwordStrength < 25
+        ? 'progress-error'
+        : passwordStrength < 50
+        ? 'progress-warning'
+        : passwordStrength < 75
+        ? 'progress-info'
+        : 'progress-success'
     passwordStrengthProgress = passwordStrength.toString()
   }
 
@@ -73,8 +68,8 @@
       return false
     }
     // check if the master password is weak
-    if (passwordStrength < 50) {
-      masterPasswordError = 'Password is too weak'
+    if (passwordStrength < 75) {
+      masterPasswordError = 'Password is not strong enough'
       return false
     }
     if (masterPassword !== confirmMasterPassword) {
@@ -165,6 +160,21 @@
           {passwordStrengthText}
         </progress>
       </div>
+      {#if masterPassword.length>0 && passwordStrengthWarning}
+        <div class="text-xs text-red-500">{passwordStrengthWarning}</div>
+      {/if}
+
+      {#if masterPassword.length>0 && passwordStrengthSuggestions.length > 0}
+        {#each passwordStrengthSuggestions as suggestion}
+          <div class="text-xs text-yellow-500">{suggestion}</div>
+        {/each}
+      {/if}
+
+      <!-- <PasswordStrength
+        value={masterPassword}
+        showPasswordSuggestions
+        showPasswordWarning /> -->
+
       <PasswordInput
         label="Confirm Master Password"
         id="confirmMasterPassword"

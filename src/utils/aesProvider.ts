@@ -1,6 +1,3 @@
-import crypto from 'crypto'
-
-
 export async function aesEncrypt(
   data: ArrayBuffer,
   iv: ArrayBuffer,
