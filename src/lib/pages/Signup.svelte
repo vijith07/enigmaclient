@@ -6,15 +6,6 @@
   import Input from '../components/Input.svelte'
   import PasswordInput from '../components/PasswordInput.svelte'
   import { createAccount } from '../../services/createAccount'
-  // import PasswordStrength from '../components/PasswordStrength.svelte'
-  // onMount(async () => {
-  //   const keyPair = await rsaGenerateKeyPair(1024)
-  //   console.log(keyPair[0])
-  //   console.log(keyPair[1])
-  //   const hash = await generatePBKDF2Hash('password', 'salt', 600000, 'sha256')
-  //   console.log(hash)
-  //   // const encryptedPrivateKey = await aesEncrypt(toBuf(keyPair[1]),
-  // })
 
   let name = ''
   let email = ''
@@ -148,6 +139,7 @@
       <div class="form-control">
         <!-- // value is the password strength -->
         <!--  conditionally render the color of the progress bar based on the strength -->
+        <!-- svelte-ignore a11y-label-has-associated-control -->
         <label class="label">
           <span class="label-text">Password Strength</span>
           <span class="label-text-alt">{passwordStrengthText}</span>

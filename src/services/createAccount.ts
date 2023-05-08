@@ -2,104 +2,16 @@ import {
   rsaGenerateKeyPair,
   rsaEncrypt,
   rsaDecrypt,
-} from '../utils/rsaProvider'
-import { aesEncrypt, aesDecrypt } from '../utils/aesProvider'
-import { ab2str, fromUtf8ToArray, str2ab, toByteString } from '../utils/common'
-import { toBuf } from '../utils/common'
+  importPublicCryptoKey,
+  exportPrivateCryptoKey,
+  exportPublicCryptoKey,
+  unwrapKey,
+  wrapKey,
+} from '../utils/crypto/rsaProvider'
+import { ab2str, b642str, str2ab, str2b64 } from '../utils/common'
+import { generatePBKDF2Hash } from '../utils/crypto/pbkdf2HashGenerator';
+import { getAESKey, getKeyMaterial } from '../utils/crypto/aesProvider';
 
-/*
-Get some key material to use as input to the deriveKey method.
-The key material is a password supplied by the user.
-*/
-function getKeyMaterial(password:string) {
-  const enc = new TextEncoder();
-  return window.crypto.subtle.importKey(
-    "raw",
-    enc.encode(password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits", "deriveKey"]
-  );
-}
-
-
-/*
-Given some key material and some random salt
-derive an AES-GCM key using PBKDF2.
-*/
-
-const getAESKey = async (keyMaterial: CryptoKey, salt: Uint8Array) => {
-  return await window.crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt: salt,
-      iterations: 600000,
-      hash: 'SHA-256',
-    },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    true,
-    ['wrapKey', 'unwrapKey']
-  )
-}
-
-/*
-wrap a key 
-*/
-
-const wrapKey = async (
-  key: CryptoKey,
-  password: string,
-  salt: Uint8Array,
-  iv: Uint8Array
-) => {
-  const keyMaterial = await getKeyMaterial(password)
-  const wrappingKey = await getAESKey(keyMaterial, salt)
-
-  return await window.crypto.subtle.wrapKey('pkcs8', key, wrappingKey, {
-    name: 'AES-GCM',
-    iv: iv,
-  })
-}
-
-/*
-unwrap a key 
-*/ 
-
-const unwrapKey = async (
-  wrappedKey: ArrayBuffer,
-  password: string,
-  salt: Uint8Array,
-  iv: Uint8Array
-) => {
-  const keyMaterial = await getKeyMaterial(password)
-  const unwrappingKey = await getAESKey(keyMaterial, salt)
-
-
-  return await window.crypto.subtle.unwrapKey(
-    "pkcs8", // import format
-    wrappedKey, // ArrayBuffer representing key to unwrap
-    unwrappingKey, // CryptoKey representing key encryption key
-    {
-      // algorithm params for key encryption key
-      name: "AES-GCM",
-      iv: iv,
-    },
-    {
-      // algorithm params for key to unwrap
-      name: "RSA-OAEP",
-      hash: "SHA-256",
-    },
-    true, // extractability of key to unwrap
-    ["decrypt"] // key usages for key to unwrap
-  );
-}
-
-// convert CryptoKey to ArrayBuffer
-export async function exportCryptoKey(key: CryptoKey) {
-  const exported = await window.crypto.subtle.exportKey('pkcs8', key)
-  return exported
-}
 
 export const createAccount = async (
   email: string,
@@ -109,28 +21,36 @@ export const createAccount = async (
 ) => {
   let salt = window.crypto.getRandomValues(new Uint8Array(16))
 
-  const [publicKey,privateKey] = await rsaGenerateKeyPair(1024)
+  const keyPair = await rsaGenerateKeyPair()
 
   const keyMaterial = await getKeyMaterial(masterPassword)
+
+ const passwordHash = await generatePBKDF2Hash(masterPassword, salt, 600000, 'sha256')
 
   const aesKey = await getAESKey(keyMaterial, salt)
 
   const iv = window.crypto.getRandomValues(new Uint8Array(12))
 
+  const pubKey = await importPublicCryptoKey(await exportPublicCryptoKey(keyPair.publicKey))
 
   const dbIV = window.btoa(ab2str(iv))
 
-  console.log('privateKey', privateKey)
+  console.log('privateKey', keyPair.privateKey)
 
-  const wrappedKey = await wrapKey(privateKey, masterPassword, salt, iv)
+  const wrappedKey = await wrapKey(keyPair.privateKey, masterPassword, salt, iv)
 
   console.log('wrappedKey', wrappedKey)
 
   const dbEncryptedPrivateKey = window.btoa(ab2str(wrappedKey))
 
+  const pk = str2ab(b642str(dbEncryptedPrivateKey))
+
+  console.log('pk', pk)
+ 
+
   console.log('dbEncryptedPrivateKey', dbEncryptedPrivateKey)
 
-  const unwrappedKey = await unwrapKey(wrappedKey, masterPassword, salt, iv)
+  const unwrappedKey = await unwrapKey(pk, masterPassword, salt, iv)
 
   console.log('unwrappedKey', unwrappedKey)
 
@@ -138,19 +58,25 @@ export const createAccount = async (
 
   // console.log('decryptedPrivateKey', decryptedPrivateKey)
 
-  const data = email
+  const data = str2ab(email)
+
+  console.log('data', data)
+
+  console.log('email', email)
 
   // // encrypt the data with the public key
 
-  const encryptedData = await rsaEncrypt(str2ab(data), publicKey, 'SHA-256')
+  const encryptedData = await rsaEncrypt(data, pubKey)
 
-  const decryptedData = await rsaDecrypt(encryptedData, unwrappedKey, 'SHA-256')
   
   console.log('encryptedData', encryptedData)
-
-  console.log('encryptedData', window.btoa(ab2str(encryptedData)))
+  
+  console.log('encryptedData',str2b64(ab2str(encryptedData)))
+  
+  // 
 
   // // decrypt the data with the private key
+  const decryptedData = await rsaDecrypt(encryptedData, unwrappedKey)
 
 
   console.log('decryptedData', decryptedData)
@@ -165,21 +91,18 @@ export const createAccount = async (
   //   'SHA-256'
   // )
 
-  // return {
-  //   publicKey: window.btoa(ab2str(publicKey)),
-  //   email,
-  //   passwordHint,
-  //   privateKey: window.btoa(ab2str(privateKey)),
-  //   encryptedPrivateKey: window.btoa(ab2str(encryptedPrivateKey)),
-  //   iv: window.btoa(ab2str(iv)),
-  //   passwordHash: window.btoa(ab2str(passwordHash)),
-  //   name,
-  //   encryptedData: window.btoa(ab2str(encryptedData)),
-  //   decryptedData: ab2str(decryptedData),
-  //   decryptDataWithDecryptedPrivateKey: toByteString(
-  //     decryptDataWithDecryptedPrivateKey
-  //   ),
-  // }
+  return {
+    publicKey: str2b64(ab2str(await exportPublicCryptoKey(keyPair.publicKey))),
+    email,
+    passwordHint,
+    privateKey: str2b64(ab2str(await exportPrivateCryptoKey(keyPair.privateKey))),
+    encryptedPrivateKey: str2b64(ab2str(wrappedKey)),
+    iv: str2b64(ab2str(iv)),
+    passwordHash: str2b64(ab2str(passwordHash)),
+    name,
+    encryptedData: str2b64(ab2str(encryptedData)),
+    decryptedData: ab2str(decryptedData),
+  }
 }
 
 // // convert ArrayBuffer to string

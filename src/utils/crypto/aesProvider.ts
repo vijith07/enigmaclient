@@ -35,3 +35,29 @@ export async function aesDecrypt(
     data
   )
 }
+
+export const getKeyMaterial = (password: string) => {
+  const enc = new TextEncoder()
+  return window.crypto.subtle.importKey(
+    'raw',
+    enc.encode(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits', 'deriveKey']
+  )
+}
+
+export const getAESKey = async (keyMaterial: CryptoKey, salt: Uint8Array) => {
+  return await window.crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: salt,
+      iterations: 600000,
+      hash: 'SHA-256',
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['wrapKey', 'unwrapKey']
+  )
+}

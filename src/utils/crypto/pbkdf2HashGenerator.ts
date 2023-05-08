@@ -1,4 +1,4 @@
-import { toBuf } from './common'
+import { str2ab } from "../common"
 
 export async function generatePBKDF2Hash(
   password: string | ArrayBuffer,
@@ -7,8 +7,8 @@ export async function generatePBKDF2Hash(
   algorithm: 'sha256' | 'sha512'
 ) {
   const wcLen = algorithm === 'sha256' ? 256 : 512
-  const passwordBuffer = toBuf(password)
-  const saltBuffer = toBuf(salt)
+  const passwordBuffer = typeof password === 'string' ? str2ab(password) : password
+  const saltBuffer = typeof salt === 'string' ? str2ab(salt) : salt
   const pbkdf2Params = {
     name: 'PBKDF2',
     salt: saltBuffer,

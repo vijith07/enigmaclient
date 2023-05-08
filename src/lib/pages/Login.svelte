@@ -34,16 +34,18 @@
         <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
           <div class="card-body">
             <div class="form-control">
+              <!-- svelte-ignore a11y-label-has-associated-control -->
               <label class="label">
                 <span class="label-text">Email</span>
               </label>
               <input
-                type="text"
+                type="email"
                 placeholder="email"
                 class="input input-bordered"
               />
             </div>
             <div class="form-control">
+              <!-- svelte-ignore a11y-label-has-associated-control -->
               <label class="label">
                 <span class="label-text">Master Password</span>
               </label>
