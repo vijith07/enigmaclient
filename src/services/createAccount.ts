@@ -9,9 +9,8 @@ import {
   wrapKey,
 } from '../utils/crypto/rsaProvider'
 import { ab2str, b642str, str2ab, str2b64 } from '../utils/common'
-import { generatePBKDF2Hash } from '../utils/crypto/pbkdf2HashGenerator';
-import { getAESKey, getKeyMaterial } from '../utils/crypto/aesProvider';
-
+import { generatePBKDF2Hash } from '../utils/crypto/pbkdf2HashGenerator'
+import { getAESKey, getKeyMaterial } from '../utils/crypto/aesProvider'
 
 export const createAccount = async (
   email: string,
@@ -25,13 +24,20 @@ export const createAccount = async (
 
   const keyMaterial = await getKeyMaterial(masterPassword)
 
- const passwordHash = await generatePBKDF2Hash(masterPassword, salt, 600000, 'sha256')
+  const passwordHash = await generatePBKDF2Hash(
+    masterPassword,
+    salt,
+    600000,
+    'sha256'
+  )
 
   const aesKey = await getAESKey(keyMaterial, salt)
 
   const iv = window.crypto.getRandomValues(new Uint8Array(12))
 
-  const pubKey = await importPublicCryptoKey(await exportPublicCryptoKey(keyPair.publicKey))
+  const pubKey = await importPublicCryptoKey(
+    await exportPublicCryptoKey(keyPair.publicKey)
+  )
 
   const dbIV = window.btoa(ab2str(iv))
 
@@ -46,7 +52,6 @@ export const createAccount = async (
   const pk = str2ab(b642str(dbEncryptedPrivateKey))
 
   console.log('pk', pk)
- 
 
   console.log('dbEncryptedPrivateKey', dbEncryptedPrivateKey)
 
@@ -68,16 +73,14 @@ export const createAccount = async (
 
   const encryptedData = await rsaEncrypt(data, pubKey)
 
-  
   console.log('encryptedData', encryptedData)
-  
-  console.log('encryptedData',str2b64(ab2str(encryptedData)))
-  
-  // 
+
+  console.log('encryptedData', str2b64(ab2str(encryptedData)))
+
+  //
 
   // // decrypt the data with the private key
   const decryptedData = await rsaDecrypt(encryptedData, unwrappedKey)
-
 
   console.log('decryptedData', decryptedData)
 
@@ -91,17 +94,33 @@ export const createAccount = async (
   //   'SHA-256'
   // )
 
-  return {
-    publicKey: str2b64(ab2str(await exportPublicCryptoKey(keyPair.publicKey))),
-    email,
-    passwordHint,
-    privateKey: str2b64(ab2str(await exportPrivateCryptoKey(keyPair.privateKey))),
-    encryptedPrivateKey: str2b64(ab2str(wrappedKey)),
+  const req = {
+    public_key: str2b64(ab2str(await exportPublicCryptoKey(keyPair.publicKey))),
+    email:email,
+    password_hint: passwordHint,
+    encrypted_private_key: str2b64(ab2str(wrappedKey)),
     iv: str2b64(ab2str(iv)),
-    passwordHash: str2b64(ab2str(passwordHash)),
-    name,
-    encryptedData: str2b64(ab2str(encryptedData)),
-    decryptedData: ab2str(decryptedData),
+    password: str2b64(ab2str(passwordHash)),
+    name: name,
+    kdftype: 0,
+    kdfiterations: 600000,
+    email_verified: false,
+  }
+  // send the data to the server
+  console.log('req', req)
+
+  try {
+    const res = await fetch('http://localhost:8000/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(req),
+    })
+    const data = await res.json()
+    return data
+  } catch (error) {
+    return error.message
   }
 }
 
