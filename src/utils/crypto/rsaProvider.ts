@@ -42,13 +42,9 @@ async function rsaDecrypt(
 
 const wrapKey = async (
   key: CryptoKey,
-  password: string,
-  salt: Uint8Array,
+  wrappingKey: CryptoKey,
   iv: Uint8Array
 ) => {
-  const keyMaterial = await getKeyMaterial(password)
-  const wrappingKey = await getAESKey(keyMaterial, salt)
-
   return await window.crypto.subtle.wrapKey('pkcs8', key, wrappingKey, {
     name: 'AES-GCM',
     iv: iv,
@@ -61,12 +57,9 @@ unwrap a key
 
 const unwrapKey = async (
   wrappedKey: ArrayBuffer,
-  password: string,
-  salt: Uint8Array,
+  unwrappingKey: CryptoKey,
   iv: Uint8Array
 ) => {
-  const keyMaterial = await getKeyMaterial(password)
-  const unwrappingKey = await getAESKey(keyMaterial, salt)
   return await window.crypto.subtle.unwrapKey(
     'pkcs8', // import format
     wrappedKey, // ArrayBuffer representing key to unwrap

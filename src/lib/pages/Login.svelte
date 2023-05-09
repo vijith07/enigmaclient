@@ -1,11 +1,42 @@
 <!-- Login page -->
 <script>
   import { Link } from 'svelte-navigator'
+  import Input from '../components/Input.svelte'
+  import PasswordInput from '../components/PasswordInput.svelte'
+  import { userSignin } from '../../services/auth'
+
+  let email = ''
+  let masterPassword = ''
+  let emailError = ''
+  let masterPasswordError = ''
+
+  // validate inputs
+  const validateInputs = () => {
+    emailError = ''
+    if (email.length === 0) {
+      emailError = 'Email is required'
+      return false
+    }
+    if (masterPassword.length === 0) {
+      masterPasswordError = 'Password is required'
+      return false
+    }
+    return true
+  }
+
+  const submitForm = async () => {
+    // validate inputs
+    const isValid = validateInputs()
+    if (!isValid) return
+    // create account
+    const res= await userSignin(email, masterPassword)
+    console.log(res)
+  }
 </script>
 
 <form>
   <div
-    class="min-h-screen py-6 flex flex-col items-center  bg-gradient-to-b from-slate-800 to-base-200"
+    class="min-h-screen py-6 flex flex-col items-center bg-gradient-to-b from-slate-800 to-base-200"
   >
     <!--  Login or Signup -->
     <Link to="/" class=" text-3xl flex items-center gap-2">
@@ -33,33 +64,20 @@
       <div class="hero-content flex-col lg:flex-row-reverse">
         <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
           <div class="card-body">
-            <div class="form-control">
-              <!-- svelte-ignore a11y-label-has-associated-control -->
-              <label class="label">
-                <span class="label-text">Email</span>
-              </label>
-              <input
-                type="email"
-                placeholder="email"
-                class="input input-bordered"
-              />
-            </div>
-            <div class="form-control">
-              <!-- svelte-ignore a11y-label-has-associated-control -->
-              <label class="label">
-                <span class="label-text">Master Password</span>
-              </label>
-              <input
-                type="text"
-                placeholder="master password"
-                class="input input-bordered"
-              />
-              <!-- <label class="label">
-              <a href="#" class="label-text-alt link link-hover"
-                >Forgot password?</a
-              >
-            </label> -->
-            </div>
+            <Input
+              label="Email"
+              id="email"
+              type="email"
+              value={email}
+              bottomLeftLabel="You will use this to login."
+              required={true}
+            />
+            <PasswordInput
+              label="Master Password"
+              id="masterPassword"
+              value={masterPassword}
+              bottomLeftLabel="Your master password."
+            />
             <div class="form-control mt-6">
               <button class="btn btn-primary">Login</button>
             </div>

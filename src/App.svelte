@@ -4,6 +4,7 @@
   import Home from "./lib/pages/Home.svelte"
   import Login from "./lib/pages/Login.svelte"
   import Signup from "./lib/pages/Signup.svelte"
+  import Send from "./lib/pages/Send.svelte"
 </script>
 
 <main class="font-Inter">
@@ -16,6 +17,12 @@
     </Route>
     <Route path="/signup">
       <Signup />
+    </Route>
+    <Route path="*">
+      <h1>404 - Not Found</h1>
+    </Route>
+    <Route path="/send">
+      <Send />
     </Route>
   </Router>
 

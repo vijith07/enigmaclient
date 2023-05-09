@@ -47,7 +47,8 @@ export const getKeyMaterial = (password: string) => {
   )
 }
 
-export const getAESKey = async (keyMaterial: CryptoKey, salt: Uint8Array) => {
+export const getAESKey = async (masterPassword:string, salt: Uint8Array) => {
+  const keyMaterial = await getKeyMaterial(masterPassword)
   return await window.crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
@@ -61,3 +62,21 @@ export const getAESKey = async (keyMaterial: CryptoKey, salt: Uint8Array) => {
     ['wrapKey', 'unwrapKey']
   )
 }
+
+
+// export aes key
+export const exportAESKey = async (key: CryptoKey) => {
+  return await window.crypto.subtle.exportKey('raw', key)
+}
+
+// import aes key
+export const importAESKey = async (key: ArrayBuffer, usage: KeyUsage[]) => {
+  return await window.crypto.subtle.importKey(
+    'raw',
+    key,
+    { name: 'AES-GCM', length: 256 },
+    true,
+    usage
+  )
+}
+

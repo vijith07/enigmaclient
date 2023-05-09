@@ -20,3 +20,13 @@ export function str2b64(str: string): string {
 export function b642str(b64: string): string {
   return window.atob(b64)
 }
+
+// string to Uint8Array
+export function str2ua(str: string): Uint8Array {
+  return new Uint8Array(str2ab(str))
+}
+
+// Uint8Array to string
+export function ua2str(ua: Uint8Array): string {
+  return ab2str(ua.buffer)
+}

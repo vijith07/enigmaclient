@@ -49,6 +49,7 @@
     {id}
     {value}
     on:input={handleInput}
+    required
   />
 
   <!--  show/hide password toggle -->

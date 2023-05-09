@@ -5,7 +5,7 @@
   import { passwordStrengthCalculator } from '../../utils/passwordUtils'
   import Input from '../components/Input.svelte'
   import PasswordInput from '../components/PasswordInput.svelte'
-  import { createAccount } from '../../services/createAccount'
+  import { createAccount } from '../../services/auth'
 
   let name = ''
   let email = ''
@@ -51,11 +51,7 @@
       emailError = 'Email is required'
       return false
     }
-    // check if the email is valid using a regex
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      emailError = 'Invalid email'
-      return false
-    }
+
     if (masterPassword.length < 12) {
       masterPasswordError = 'Password must be at least 12 characters long'
       return false
@@ -118,6 +114,7 @@
         topRightLabel="Required"
         error={emailError}
         bottomLeftLabel="You will use this to login."
+        type="email"
       />
 
       <Input
@@ -125,6 +122,7 @@
         id="name"
         bind:value={name}
         bottomLeftLabel="What should we call you?"
+        required={true}
       />
 
       <PasswordInput
@@ -156,17 +154,17 @@
       </div>
 
       <!-- time to crack password -->
-      {#if masterPassword.length>0}
+      {#if masterPassword.length > 0}
         <div class="text-xs text-gray-500">
           Time to crack: {passwordTimeToCrack}
         </div>
       {/if}
 
-      {#if masterPassword.length>0 && passwordStrengthWarning}
+      {#if masterPassword.length > 0 && passwordStrengthWarning}
         <div class="text-xs text-red-500">{passwordStrengthWarning}</div>
       {/if}
 
-      {#if masterPassword.length>0 && passwordStrengthSuggestions.length > 0}
+      {#if masterPassword.length > 0 && passwordStrengthSuggestions.length > 0}
         {#each passwordStrengthSuggestions as suggestion}
           <div class="text-xs text-yellow-500">{suggestion}</div>
         {/each}
@@ -216,4 +214,3 @@
     </div>
   </div>
 {/if}
-

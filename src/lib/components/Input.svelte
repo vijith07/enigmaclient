@@ -9,6 +9,7 @@
   export let bottomRightLabel = ''
   export let id = ''
   export let error = ''
+  export let required = false
 
   function handleInput({ target: t }) {
     if (type === 'number') {
@@ -40,6 +41,7 @@
     {id}
     {value}
     on:input={handleInput}
+    {required}
   />
   {#if error.length > 0}
     <p class="text-error p-2">{error}</p>
