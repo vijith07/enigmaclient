@@ -1,6 +1,26 @@
 <script lang="ts">
   // @ts-ignore
   import { Router, Route, Link } from 'svelte-navigator'
+  // check local storage for the token
+  let isLoggedIn = false
+  let userName = ''
+
+  const token = sessionStorage.getItem('token')
+  if (token) {
+    isLoggedIn = true
+    const user = sessionStorage.getItem('user')
+    if (user) {
+      userName = JSON.parse(user).name || ''
+    }
+  }
+
+  // handle logout click 
+  const logout = () => {
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
+    window.location.href = '/'
+  }
+
 </script>
 
 <div
@@ -8,6 +28,8 @@
 >
   <div class="navbar-start">
     <div class="dropdown">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
+      <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
       <label tabindex="0" class="btn btn-ghost lg:hidden">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -23,6 +45,7 @@
           /></svg
         >
       </label>
+      <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
       <ul
         tabindex="0"
         class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
@@ -57,11 +80,35 @@
     </ul>
   </div>
   <div class="navbar-end">
-    <Link to="/login">
-      <button class="btn btn-ghost">Login</button>
-    </Link>
-    <Link to="/signup">
-      <button class="btn btn-primary">Sign Up</button>
-    </Link>
+    {#if isLoggedIn}
+      <div class="dropdown dropdown-end">
+        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+        <div tabindex="0" class="btn btn-ghost">
+          <div class="avatar placeholder">
+            <div
+              class="bg-neutral-focus text-neutral-content rounded-full w-12"
+            >
+              <span>{userName[0]}</span>
+            </div>
+          </div>
+        </div> 
+        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+        <ul
+          tabindex="0"
+          class="menu dropdown-content shadow bg-base-100 rounded-box w-52"
+        >
+          <li><Link to="/profile">Profile</Link></li>
+          <li><button class="" on:click={logout}>Logout 🏃</button></li>
+        </ul>
+        <!-- Hi message with nameand logout button -->
+      </div>
+    {:else}
+      <Link to="/login">
+        <button class="btn btn-ghost">Login </button>
+      </Link>
+      <Link to="/signup">
+        <button class="btn btn-primary">Sign Up</button>
+      </Link>
+    {/if}
   </div>
 </div>

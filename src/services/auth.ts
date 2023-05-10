@@ -126,7 +126,7 @@ const saveUserData = async (data: any, password: string) => {
   const userData: IUserData = {
     public_key: data.public_key,
     email: data.email,
-    wrapped_private_key: data.wrapped_private_key,
+    wrapped_private_key: data.encrypted_private_key,
     iv: data.iv,
     salt: data.salt,
     name: data.name,

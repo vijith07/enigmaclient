@@ -23,19 +23,28 @@
     }
     return true
   }
-
+  let res = null
   const submitForm = async () => {
     // validate inputs
+    console.log('submitting form')
+
+
     const isValid = validateInputs()
+    console.log('isValid', isValid)
     if (!isValid) return
     // create account
-    const res= await userSignin(email, masterPassword)
-    console.log(res)
+    res = await userSignin(email, masterPassword)
+    // if error
+    if (res.error) {
+      emailError = res.error
+      return
+    }
+    window.location.href = '/send'
   }
 </script>
 
-<form>
-  <div
+<form on:submit|preventDefault={submitForm}
+  
     class="min-h-screen py-6 flex flex-col items-center bg-gradient-to-b from-slate-800 to-base-200"
   >
     <!--  Login or Signup -->
@@ -68,18 +77,18 @@
               label="Email"
               id="email"
               type="email"
-              value={email}
+              bind:value={email}
               bottomLeftLabel="You will use this to login."
               required={true}
             />
             <PasswordInput
               label="Master Password"
               id="masterPassword"
-              value={masterPassword}
+              bind:value={masterPassword}
               bottomLeftLabel="Your master password."
             />
             <div class="form-control mt-6">
-              <button class="btn btn-primary">Login</button>
+              <button class="btn btn-primary" type="submit">Login</button>
             </div>
             <div class="text-gray-300">
               Don't have an account? <Link to="/signup" class="text-white"
@@ -91,5 +100,12 @@
       </div>
     </div>
     <div>© 2023 Enigma. All rights reserved.</div>
-  </div>
 </form>
+
+{#if res}
+  <div class="card">
+    <div class="card-body">
+      <pre>{JSON.stringify(res, null, 2)}</pre>
+    </div>
+  </div>
+{/if}
