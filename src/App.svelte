@@ -5,6 +5,7 @@
   import Login from "./lib/pages/Login.svelte"
   import Signup from "./lib/pages/Signup.svelte"
   import Send from "./lib/pages/Send.svelte"
+  import Counter from "./lib/Counter.svelte"
 </script>
 
 <main class="font-Inter">
@@ -21,7 +22,8 @@
     <Route path="*">
       <h1>404 - Not Found</h1>
     </Route>
-    <Route path="/send">
+    <!-- protected route -->
+    <Route path="/send" >
       <Send />
     </Route>
   </Router>
