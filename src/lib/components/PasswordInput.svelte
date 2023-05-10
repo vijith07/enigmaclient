@@ -14,6 +14,7 @@
   export let showPasswordToggle = false
   export let showPasswordStrength = false
   export let showPasswordSuggestions = false
+  export let autocomplete = ''
 
   let showPassword = false
 
@@ -37,12 +38,13 @@
       <span class="label-text">{label}</span>
     {/if}
     {#if topRightLabel}
-      <span class="label-text-alt">{topRightLabel}</span>
+      <span class="label-text-alt opacity-50">{topRightLabel}</span>
     {/if}
   </label>
   <input
     {type}
     {placeholder}
+    {autocomplete}
     class="input w-full input-bordered {error
       ? 'border-red-500'
       : ''} focus:border-0"

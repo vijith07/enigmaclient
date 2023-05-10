@@ -10,8 +10,7 @@
   export let id = ''
   export let error = ''
   export let required = false
-  export let variant : 'small'|'medium'|'large' = 'large'
-  export let min : number = 0
+  // export let variant : 'small'|'medium'|'large' = 'large'
 
   function handleInput({ target: t }) {
     if (type === 'number') {
@@ -24,9 +23,7 @@
 
 <!--  if input type is password add show/hide icon -->
 
-
-
-<div class="form-control w-full ">
+<div class="form-control w-full">
   <!-- svelte-ignore a11y-label-has-associated-control -->
   <label class="label">
     {#if label}
@@ -36,11 +33,11 @@
       <span class="label-text-alt">{topRightLabel}</span>
     {/if}
   </label>
-  <input
-    {type}
-    {min}
+  <textarea
     {placeholder}
-    class="input w-full input-bordered {error ? 'border-red-500' : ''} focus:border-0 {variant === 'small' ? 'w-32' : variant === 'large' ? '' : 'w-56'}"
+    class="textarea w-full textarea-bordered {error
+      ? 'border-red-500'
+      : ''} focus:border-0"
     {id}
     {value}
     on:input={handleInput}
