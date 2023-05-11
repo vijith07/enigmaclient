@@ -2,7 +2,7 @@
 <script lang="ts">
   export let type = 'text'
   export let placeholder = ''
-  export let value = type === 'text' ? '' : null
+  export let value = type === 'text' ? '' : type === 'number' ? 0 : null
   export let label = ''
   export let topRightLabel = ''
   export let bottomLeftLabel = ''

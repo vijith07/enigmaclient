@@ -15,6 +15,7 @@
   export let showPasswordStrength = false
   export let showPasswordSuggestions = false
   export let autocomplete = ''
+  export let required = true
 
   let showPassword = false
 

@@ -23,7 +23,7 @@
           <span class="label-text-alt">{topRightLabel}</span>
         {/if}
       </label>
-    <select {placeholder} {required} {disabled} {id} {value} class="select select-bordered focus:border-0 {error ? 'border-red-500' : ''} {variant === 'small' ? 'w-32' : variant === 'large' ? '' : 'w-56'}">
+    <select {placeholder} {required} {disabled} {id} bind:value={value} class="select select-bordered focus:border-0 {error ? 'border-red-500' : ''} {variant === 'small' ? 'w-32' : variant === 'large' ? '' : 'w-56'}">
         {#each options as option}
             <option value={option}>{option}</option>
         {/each}
