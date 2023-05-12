@@ -111,7 +111,7 @@ export const userSignin = async (email: string, password: string) => {
     if (!res.ok) {
       return data
     }
-    await saveUserData(data, password)
+    await saveUserData(data.user, password)
     return data
   } catch (error) {
     return error.message

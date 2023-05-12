@@ -10,6 +10,8 @@
   export let id = ''
   export let error = ''
   export let required = false
+  export let readonly = false
+  export let hidden = false
   // export let variant : 'small'|'medium'|'large' = 'large'
 
   function handleInput({ target: t }) {
@@ -42,6 +44,8 @@
     {value}
     on:input={handleInput}
     {required}
+    {hidden}
+    {readonly}
   />
   {#if error.length > 0}
     <p class="text-error p-2">{error}</p>
