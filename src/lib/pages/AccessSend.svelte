@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  // import services
   import type { IAccessSend } from '../../services/send'
   import {
     getSendforAccess,
@@ -10,7 +9,6 @@
   import PasswordInput from '../components/PasswordInput.svelte'
   import { Link } from 'svelte-navigator'
   import TextArea from '../components/TextArea.svelte'
-  import App from '../../App.svelte'
 
   let sendId = ''
   let aesKey = ''
@@ -22,7 +20,7 @@
   let email = ''
   let send: IAccessSend = null
   let hideData = true
-  let error = ''
+  let error: string | null = null
 
   const getIdAndKey = () => {
     let url = window.location.href
@@ -54,13 +52,25 @@
       } else {
         requirePassword = false
         isPasswordCorrect = true
-        let decryptedData = await decryptAccessSend(aesKey, send)
+        let decryptedData = null
+        try {
+          decryptedData = await decryptAccessSend(aesKey, send)
+        } catch (err) {
+          error =
+            'Error decrypting data. Please check if the link is correct and try again.'
+        }
         name = decryptedData.name
         email = decryptedData.email
         data = decryptedData.data
       }
-    } catch (error) {
-      console.log(error)
+    } catch (err) {
+      // set timeout to redirect to home page
+      error =
+        'Error fetching data. Please check if the link is correct and try again.'
+      setTimeout(() => {
+        window.location.replace('/')
+      }, 5000)
+
     }
   })
 
@@ -85,16 +95,8 @@
   }
 </script>
 
-<!--  display data with name and email in a card -->
-<!--  if password is required, display a password input -->
-<!--  if password is incorrect, display a warning -->
-<!--  if password is correct, display data -->
-<!--  if hide_data is true, display a warning and show a button to show data -->
-<!--  if hide_data is false, display data -->
-<!--  if email is empty, display a warning -->
-<!--  if email is not hidden, display email -->
 <div
-  class="flex flex-col justify-center items-center min-h-screen bg-gradient-to-tr from-base-100 to-slate-800"
+  class="flex flex-col pt-4 items-center min-h-screen bg-gradient-to-tr from-base-100 to-slate-800"
 >
   <Link to="/" class=" text-xl flex items-center gap-2 text-primary">
     <svg
@@ -112,13 +114,21 @@
     <div>Send</div>
   </Link>
 
-  {#if requirePassword && !isPasswordCorrect}
+  {#if error}
+    <div
+      class="w-1/2 flex justify-center m-24 alert text-warning border border-error"
+    >
+      {error}
+    </div>
+  {/if}
+
+  {#if requirePassword && !isPasswordCorrect && !error}
     <!-- show input filed to aske for password and a button to verify -->
     <!--  form to ask for password -->
     <!--  info that this is a password protected send -->
 
     <form
-      class="flex flex-col gap-4 m-4 p-10 rounded shadow-lg"
+      class="flex flex-col lg:w-2/5 md:w-3/5 w-full gap-4 m-4 p-10 rounded shadow-lg"
       on:submit|preventDefault={verifyPassword}
     >
       <p class="text-lg">
@@ -133,17 +143,18 @@
         bind:value={password}
         autocomplete="new-password"
         {error}
+        required={false}
       />
       <button class="btn btn-primary mx-10" type="submit"> Verify </button>
     </form>
   {/if}
 
-  {#if isPasswordCorrect}
+  {#if isPasswordCorrect && !error}
     <!--  show warning if email is empty -->
 
     {#if email === ''}
       <div
-        class="alert text-warning border border-warning border-opacity-20 w-2/5 m-4"
+        class="alert text-warning border border-warning border-opacity-20 lg:w-2/5 md:w-3/5 w-full p-2 m-4"
       >
         <div>
           <svg
@@ -167,8 +178,10 @@
       </div>
     {/if}
 
-    <div class="flex w-1/2 justify-end items-center flex-col m-4">
-      <div class="text-base text-primary uppercase">{name}</div>
+    <div
+      class="flex lg:w-2/5 md:w-3/5 w-full justify-end items-center flex-col p-2 m-4"
+    >
+      <div class="text-base text-info uppercase">{name}</div>
       <div class="divider" />
       {#if email.length > 0}
         <div class="card-body text-xs opacity-40">sender: {email}</div>
@@ -199,5 +212,5 @@
       </button>
     </div>
   {/if}
-  <div>© 2023 Enigma. All rights reserved.</div>
+  <div class="p-2">© 2023 Enigma. All rights reserved.</div>
 </div>

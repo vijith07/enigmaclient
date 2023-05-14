@@ -32,8 +32,6 @@ async function rsaDecrypt(
   // Note: Edge browser requires that we specify name and hash for both key import and decrypt.
   // We cannot use the proper types here.
 
-  console.log(privateKey.algorithm)
-
   const rsaParams: RsaOaepParams = {
     name: 'RSA-OAEP',
   }

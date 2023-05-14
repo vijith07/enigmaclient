@@ -1,18 +1,22 @@
 <!-- Create Account -->
-<script async script>
+<script async script lang="ts">
   import { Link } from 'svelte-navigator'
   // @ts-ignore
   import { passwordStrengthCalculator } from '../../utils/passwordUtils'
   import Input from '../components/Input.svelte'
   import PasswordInput from '../components/PasswordInput.svelte'
   import { createAccount } from '../../services/auth'
+  import { onMount } from 'svelte'
+  import LoadingSpinner from '../components/LoadingSpinner.svelte'
 
+  let redirectUrl: string | null = null
+  let isLoading = false
   let name = ''
   let email = ''
   let masterPassword = ''
   let confirmMasterPassword = ''
   let passwordHint = ''
-
+  let error = ''
   let emailError = ''
   let masterPasswordError = ''
   let confirmMasterPasswordError = ''
@@ -77,14 +81,37 @@
       masterPasswordError = ''
       confirmMasterPasswordError = ''
       // create the account
-      res = await createAccount(email, masterPassword, passwordHint, name)
+      try {
+        isLoading = true
+        res = await createAccount(email, masterPassword, name, passwordHint)
+        isLoading = false
+        error = ''
+        if (!redirectUrl) {
+          window.location.replace('/send')
+        } else {
+          window.location.replace(redirectUrl)
+        }
+      } catch (err) {
+        isLoading = false
+        error = err.message
+      }
     }
   }
+  onMount(async () => {
+    if (sessionStorage.getItem('token')) {
+      window.location.replace('/')
+    }
+    const urlParams = new URLSearchParams(window.location.search)
+    redirectUrl = urlParams.get('redirect')
+  })
 </script>
 
 <!-- Create Account Form -->
-<form
-  on:submit|preventDefault={submitForm}
+{#if isLoading}
+  <LoadingSpinner />
+{:else}
+  <form
+    on:submit|preventDefault={submitForm}
     class="flex min-h-screen flex-col items-center gap-2 bg-gradient-to-b from-slate-800 to-base-200"
   >
     <div class="flex flex-col items-center gap-4 mt-10">
@@ -107,6 +134,7 @@
     </div>
     <div class="card flex-shrink-0 shadow-2xl bg-base-100">
       <div class="card-body">
+        <div class="text-red-500">{error}</div>
         <Input
           label="Email"
           id="email"
@@ -115,6 +143,7 @@
           error={emailError}
           bottomLeftLabel="You will use this to login."
           type="email"
+          required={true}
         />
 
         <Input
@@ -122,7 +151,6 @@
           id="name"
           bind:value={name}
           bottomLeftLabel="What should we call you?"
-          required={true}
         />
 
         <PasswordInput
@@ -133,6 +161,7 @@
           type="password"
           error={masterPasswordError}
           showPasswordToggle
+          required={true}
         />
 
         <!-- password strength meter -->
@@ -183,6 +212,7 @@
           type="password"
           error={confirmMasterPasswordError}
           showPasswordToggle
+          required={true}
         />
         <Input
           label="Password Hint"
@@ -192,23 +222,24 @@
         />
       </div>
       <div class="form-control flex flex-col items-center">
-        <button
-          class="btn btn-primary w-1/2 m-2"
-          type="submit"
-        >
+        <button class="btn btn-primary w-1/2 m-2" type="submit">
           Create Account
         </button>
-        <Link to="/login" class="btn btn-ghost m-2">Login</Link>
+        <Link
+          to="/login?redirect={redirectUrl}"
+          class="btn btn-ghost m-2">Login</Link
+        >
       </div>
     </div>
     <div class="my-2">© 2023 Enigma. All rights reserved.</div>
-</form>
+  </form>
+{/if}
 <!--  display contents in res if it is not null -->
 
-{#if res}
+<!-- {#if res}
   <div class="card">
     <div class="card-body">
       <pre>{JSON.stringify(res, null, 2)}</pre>
     </div>
   </div>
-{/if}
+{/if} -->

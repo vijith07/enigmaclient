@@ -13,12 +13,10 @@
       userName = JSON.parse(user).name || ''
     }
   }
-
-  // handle logout click 
   const logout = () => {
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('user')
-    window.location.href = '/'
+    window.location.replace('/login')
   }
 
 </script>
@@ -97,8 +95,11 @@
           tabindex="0"
           class="menu dropdown-content shadow bg-base-100 rounded-box w-52"
         >
+          <!-- email -->
+          <li><div class="p-3 justify-center opacity-50">{userName}</div></li>
+          <li class="divider"></li>
           <li><Link to="/profile">Profile</Link></li>
-          <li><button class="" on:click={logout}>Logout 🏃</button></li>
+          <li><button class="" on:click={logout}>Logout</button></li>
         </ul>
         <!-- Hi message with nameand logout button -->
       </div>

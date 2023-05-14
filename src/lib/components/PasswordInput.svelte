@@ -52,12 +52,12 @@
     {id}
     {value}
     on:input={handleInput}
-    required
+    {required}
   />
 
   <!--  show/hide password toggle -->
   <div class="flex items-center justify-end">
-    <button class="btn btn-ghost btn-sm hover:bg-transparent" on:click={toggleShowPassword}>
+    <button class="btn btn-ghost btn-sm hover:bg-transparent" type="button" on:click={toggleShowPassword}>
       {#if showPassword}
         Hide
       {:else}

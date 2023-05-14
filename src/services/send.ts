@@ -70,81 +70,88 @@ export interface IAccessSend {
 
 export const createSend = async (send: ISend) => {
   // get the aes key from session storage
-  const user = sessionStorage.getItem('user')
-  if (!user) {
-    return 'User not found'
-  }
-  const userData = JSON.parse(user)
-  // const aesKey = await importAESKey(str2ab(b642str(userData.aes_key)), ['wrapKey', 'unwrapKey'])
-  // const aesIV = str2ua(b642str(userData.iv))
-  const public_key = await importPublicCryptoKey(
-    str2ab(b642str(userData.public_key))
-  )
-  // const wrapped_private_key = str2ab(b642str(userData.wrapped_private_key))
-  // const privateKey = await unwrapKey(wrapped_private_key, aesKey, aesIV)
-
-  // denerate new aes key and iv
-  // const aesKey = await importAESKey()
-  const iv = window.crypto.getRandomValues(new Uint8Array(12))
-
-  // generate new aes key
-  const aesKey = await generateAESKey()
-
-  // encrypt each field
-  const encryptedName = str2b64(
-    ab2str(await aesEncrypt(str2ab(send.name), aesKey, iv))
-  )
-  // const encryptedType = await aesEncrypt(send.type.toString(), aesKey, iv
-  const encryptedText = str2b64(
-    ab2str(await aesEncrypt(str2ab(send.text), aesKey, iv))
-  )
-  const encryptedNotes = str2b64(
-    ab2str(await aesEncrypt(str2ab(send.notes), aesKey, iv))
-  )
-  const encryptedPassword = str2b64(
-    ab2str(await aesEncrypt(str2ab(send.password), aesKey, iv))
-  )
-
-  // convert iv to base64
-  const ivB64 = str2b64(ua2str(iv))
-  // export aes key
-  const encryptedAesKeyB64 = str2b64(
-    ab2str(await rsaEncrypt(await exportAESKey(aesKey), public_key))
-  )
-  const req = {
-    name: encryptedName,
-    type_: send.type,
-    data: encryptedText,
-    hide_data: send.hideText,
-    expiration_time: send.expiryDate.replace(' ', ''),
-    deletion_time: send.deleteDate.replace(' ', ''),
-    notes: encryptedNotes,
-    password: encryptedPassword,
-    hide_email: send.hideEmail,
-    disabled: send.disableAfterAccess,
-    max_access_count: send.accessLimit,
-    iv: ivB64,
-    encrypted_key: encryptedAesKeyB64,
-  }
-
-  console.log(JSON.stringify(req))
-
   try {
-    const res = await fetch(`${APIURL}/send`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-      },
-      body: JSON.stringify(req),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      return data
+    const user = sessionStorage.getItem('user')
+    if (!user) {
+      throw new Error('User not logged in')
     }
-    return data
+    const userData = JSON.parse(user)
+    // const aesKey = await importAESKey(str2ab(b642str(userData.aes_key)), ['wrapKey', 'unwrapKey'])
+    // const aesIV = str2ua(b642str(userData.iv))
+    const public_key = await importPublicCryptoKey(
+      str2ab(b642str(userData.public_key))
+    )
+    // const wrapped_private_key = str2ab(b642str(userData.wrapped_private_key))
+    // const privateKey = await unwrapKey(wrapped_private_key, aesKey, aesIV)
+
+    // denerate new aes key and iv
+    // const aesKey = await importAESKey()
+    const iv = window.crypto.getRandomValues(new Uint8Array(12))
+
+    // generate new aes key
+    const aesKey = await generateAESKey()
+
+    // encrypt each field
+    const encryptedName = str2b64(
+      ab2str(await aesEncrypt(str2ab(send.name), aesKey, iv))
+    )
+    // const encryptedType = await aesEncrypt(send.type.toString(), aesKey, iv
+    const encryptedText = str2b64(
+      ab2str(await aesEncrypt(str2ab(send.text), aesKey, iv))
+    )
+    let encryptedNotes = ''
+    if (send.notes !== '') {
+      encryptedNotes = str2b64(
+        ab2str(await aesEncrypt(str2ab(send.notes), aesKey, iv))
+      )
+    }
+    let encryptedPassword = ''
+    if (send.password !== '') {
+      encryptedPassword = str2b64(
+        ab2str(await aesEncrypt(str2ab(send.password), aesKey, iv))
+      )
+    }
+    // convert iv to base64
+    const ivB64 = str2b64(ua2str(iv))
+    // export aes key
+    const encryptedAesKeyB64 = str2b64(
+      ab2str(await rsaEncrypt(await exportAESKey(aesKey), public_key))
+    )
+    const req = {
+      name: encryptedName,
+      type_: send.type,
+      data: encryptedText,
+      hide_data: send.hideText,
+      expiration_time: send.expiryDate.replace(' ', ''),
+      deletion_time: send.deleteDate.replace(' ', ''),
+      notes: encryptedNotes,
+      password: encryptedPassword,
+      hide_email: send.hideEmail,
+      disabled: send.disableAfterAccess,
+      max_access_count: send.accessLimit,
+      iv: ivB64,
+      encrypted_key: encryptedAesKeyB64,
+    }
+
+    try {
+      const res = await fetch(`${APIURL}/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(req),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.message)
+      }
+      return data
+    } catch (error) {
+      throw error
+    }
   } catch (error) {
-    return error.message
+    throw error
   }
 }
 
@@ -152,7 +159,7 @@ export const getSends = async () => {
   // check if user is logged in
   const user = sessionStorage.getItem('user')
   if (!user) {
-    return 'User not d'
+    throw new Error('User not found')
   }
   try {
     const res = await fetch(`${APIURL}/send`, {
@@ -163,14 +170,14 @@ export const getSends = async () => {
       },
     })
     if (!res.ok) {
-      return await res.json()
+      throw new Error(await res.json().then((data) => data.message))
     }
     const data: ISendResponse[] = await res.json()
 
     // get wrapped private key from session storage
     const user = sessionStorage.getItem('user')
     if (!user) {
-      return 'User not found'
+      throw new Error('User not found')
     }
     const userData = JSON.parse(user)
     const aesKey = await importAESKey(str2ab(b642str(userData.aes_key)), [
@@ -189,7 +196,7 @@ export const getSends = async () => {
     )
     return decryptedSends
   } catch (error) {
-    return error.message
+    throw new Error(error)
   }
 }
 
@@ -206,17 +213,24 @@ export const decryptSend = async (
   // convert iv to Uint8Array
   const iv = str2ua(b642str(send.iv))
   // decrypt the name
-  const name = ab2str(await aesDecrypt(str2ab(b642str(send.name)), aesKey, iv))
-  // decrypt the text
-  const data = ab2str(await aesDecrypt(str2ab(b642str(send.data)), aesKey, iv))
-  // decrypt the notes
-  const notes = ab2str(
-    await aesDecrypt(str2ab(b642str(send.notes)), aesKey, iv)
-  )
-  const password = ab2str(
-    await aesDecrypt(str2ab(b642str(send.password)), aesKey, iv)
-  )
-
+  let name = ''
+  if (send.name !== '') {
+    name = ab2str(await aesDecrypt(str2ab(b642str(send.name)), aesKey, iv))
+  }
+  let data = ''
+  if (send.data !== '') {
+    data = ab2str(await aesDecrypt(str2ab(b642str(send.data)), aesKey, iv))
+  }
+  let notes = ''
+  if (send.notes !== '') {
+    notes = ab2str(await aesDecrypt(str2ab(b642str(send.notes)), aesKey, iv))
+  }
+  let password = null
+  if (send.password === null) {
+    password = ab2str(
+      await aesDecrypt(str2ab(b642str(send.password)), aesKey, iv)
+    )
+  }
   const exportedAesKey = str2b64(ab2str(await exportAESKey(aesKey)))
 
   return {
@@ -251,12 +265,12 @@ export const getSendforAccess = async (id: string, key: string) => {
       },
     })
     if (!res.ok) {
-      return await res.json()
+      throw new Error(await res.json().then((data) => data.message))
     }
     const data = await res.json()
     return data
   } catch (error) {
-    return error.message
+    throw new Error(error)
   }
 }
 
@@ -305,5 +319,24 @@ export const decryptAccessSend = async (
     data: decryptedData,
     email: decryptedEmail,
     name: decryptedName,
+  }
+}
+
+// delete send
+export const deleteSend = async (id: string) => {
+  try {
+    const res = await fetch(`${APIURL}/send/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+      },
+    })
+    if (!res.ok) {
+      throw new Error(await res.json().then((data) => data.message))
+    }
+    return true
+  } catch (error) {
+    throw new Error(error)
   }
 }

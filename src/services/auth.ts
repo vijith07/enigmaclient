@@ -14,7 +14,7 @@ import {
 import { generatePBKDF2Hash } from '../utils/crypto/pbkdf2HashGenerator'
 import { exportAESKey, getAESKey } from '../utils/crypto/aesProvider'
 
-const APIURL ='http://localhost:8000'
+const APIURL = 'http://localhost:8000'
 
 interface IUserData {
   public_key: string
@@ -33,88 +33,92 @@ export const createAccount = async (
   name: string,
   passwordHint?: string
 ) => {
-  const keyPair = await rsaGenerateKeyPair()
-
-  const salt = window.crypto.getRandomValues(new Uint8Array(16))
-
-  // convert salt to base64
-  const saltB64 = str2b64(ua2str(salt))
-
-  const saltU8 = str2ua(b642str(saltB64))
-
-  // compare the two salt and saltU8
-  console.log('salt', salt)
-  console.log('saltU8', saltU8)
-
-  const passwordHash = await generatePBKDF2Hash(
-    masterPassword,
-    600000,
-    'sha256'
-  )
-
-  const aesKey = await getAESKey(masterPassword, salt)
-
-  const iv = window.crypto.getRandomValues(new Uint8Array(12))
-
-  const wrappedKey = await wrapKey(keyPair.privateKey, aesKey, iv)
-
-  const req = {
-    public_key: str2b64(ab2str(await exportPublicCryptoKey(keyPair.publicKey))),
-    email: email,
-    password_hint: passwordHint,
-    encrypted_private_key: str2b64(ab2str(wrappedKey)),
-    iv: str2b64(ua2str(iv)),
-    password: str2b64(ab2str(passwordHash)),
-    name: name,
-    salt: str2b64(ua2str(salt)),
-    kdftype: 0,
-    kdfiterations: 600000,
-    email_verified: false,
-  }
-  // send the data to the server
-  console.log('req', req)
-
   try {
-    const res = await fetch(`${APIURL}/users`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(req),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      return data
+    const keyPair = await rsaGenerateKeyPair()
+
+    const salt = window.crypto.getRandomValues(new Uint8Array(16))
+
+    // convert salt to base64
+    const saltB64 = str2b64(ua2str(salt))
+
+    const saltU8 = str2ua(b642str(saltB64))
+
+    const passwordHash = await generatePBKDF2Hash(
+      masterPassword,
+      600000,
+      'sha256'
+    )
+
+    const aesKey = await getAESKey(masterPassword, salt)
+
+    const iv = window.crypto.getRandomValues(new Uint8Array(12))
+
+    const wrappedKey = await wrapKey(keyPair.privateKey, aesKey, iv)
+
+    const req = {
+      public_key: str2b64(
+        ab2str(await exportPublicCryptoKey(keyPair.publicKey))
+      ),
+      email: email,
+      password_hint: passwordHint,
+      encrypted_private_key: str2b64(ab2str(wrappedKey)),
+      iv: str2b64(ua2str(iv)),
+      password: str2b64(ab2str(passwordHash)),
+      name: name,
+      salt: str2b64(ua2str(salt)),
+      kdftype: 0,
+      kdfiterations: 600000,
+      email_verified: false,
     }
-    await saveUserData(data, masterPassword)
-    return data
+
+    try {
+      const res = await fetch(`${APIURL}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.message)
+      }
+      await saveUserData(data, masterPassword)
+      return data
+    } catch (error) {
+      throw error
+    }
   } catch (error) {
-    return error.message
+    throw error
   }
 }
 
-export const userSignin = async (email: string, password: string) => {
-  const passwordHash = await generatePBKDF2Hash(password, 600000, 'sha256')
-  const req = {
-    email: email,
-    password: str2b64(ab2str(passwordHash)),
-  }
+export const userLogin = async (email: string, password: string) => {
   try {
-    const res = await fetch(`${APIURL}/users/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(req),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      return data
+    const passwordHash = await generatePBKDF2Hash(password, 600000, 'sha256')
+    const req = {
+      email: email,
+      password: str2b64(ab2str(passwordHash)),
     }
-    await saveUserData(data.user, password)
-    return data
+    try {
+      const res = await fetch(`${APIURL}/users/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.message)
+      }
+      await saveUserData(data.user, password)
+      return data
+    } catch (error) {
+      throw error
+    }
   } catch (error) {
-    return error.message
+    throw error
   }
 }
 
