@@ -1,4 +1,3 @@
-<!-- generic  input component -->
 <script lang="ts">
   export let type = 'text'
   export let placeholder = ''
@@ -21,10 +20,6 @@
     }
   }
 </script>
-
-<!--  if input type is password add show/hide icon -->
-
-
 
 <div class="form-control w-full ">
   <!-- svelte-ignore a11y-label-has-associated-control -->

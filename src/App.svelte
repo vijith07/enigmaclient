@@ -8,6 +8,7 @@
   import Counter from "./lib/Counter.svelte"
   import AccessSend from "./lib/pages/AccessSend.svelte"
   import EmailVerification from "./lib/pages/EmailVerification.svelte"
+  import File from "./lib/pages/File.svelte"
 </script>
 
 <main class="font-Inter">
@@ -30,6 +31,9 @@
     </Route>
     <Route path="/verify-email" >
       <EmailVerification />
+    </Route>
+    <Route path="/file">
+      <File />
     </Route>
     <Route path="*">
       <h1>404 - Not Found</h1>
