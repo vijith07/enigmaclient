@@ -1,7 +1,10 @@
 <script lang="ts">
-  import type { ISend } from '../../../services/send'
-  import { createSend } from '../../../services/send'
-
+  import {
+    createSendFile,
+    createSendText,
+  } from '../../../services/send/createSend'
+  import type { ISend } from '../../../services/send/types'
+  import { getFileSize } from '../../../utils/file'
   import Input from '../../components/Input.svelte'
   import PasswordInput from '../../components/PasswordInput.svelte'
   import Select from '../../components/Select.svelte'
@@ -17,6 +20,7 @@
     '7 days',
     '30 days',
   ]
+  const maxFileSize = 5 * 1024 * 1024 // 5MB
 
   let isLoading = false
   let error = ''
@@ -30,8 +34,8 @@
   let password = ''
   let shareOnSave = true
   let hideEmail = false
-  let disableAfterAccess = false
-  let accessLimit = 0
+  let accessLimit: number = null
+  let files: FileList = null
 
   const clearForm = () => {
     name = ''
@@ -44,7 +48,6 @@
     password = ''
     shareOnSave = true
     hideEmail = false
-    disableAfterAccess = false
     accessLimit = 0
   }
 
@@ -60,18 +63,31 @@
       password,
       shareOnSave,
       hideEmail,
-      disableAfterAccess,
       accessLimit,
     }
     try {
       isLoading = true
-      await createSend(newSend)
+      console.log(type)
+      if (type == 0) {
+        await createSendText(newSend)
+      } else if (type == 1 && error == '') {
+        await createSendFile(newSend, files[0])
+      }
       clearForm()
       isLoading = false
-      populateSendList()
+      // populateSendList()
     } catch (error) {
       isLoading = false
       error = error.message
+    }
+  }
+
+  $: if (files) {
+    if (files[0].size > maxFileSize) {
+      files = null
+      error = `File size exceeds ${getFileSize(maxFileSize)}`
+    } else {
+      error = ''
     }
   }
 </script>
@@ -122,34 +138,79 @@
                 name="radio-10"
                 class="radio"
                 checked
+                on:change={() => {
+                  type = 0
+                }}
               />
               <span class="label-text">Text</span>
             </div>
             <div class="form-control flex flex-row gap-2 m-2">
-              <input type="radio" name="radio-10" disabled class="radio" />
+              <input
+                type="radio"
+                name="radio-10"
+                class="radio"
+                on:change={() => {
+                  type = 1
+                }}
+              />
               <div class="label-text">File</div>
             </div>
           </div>
-          <TextArea
-            bottomLeftLabel="The text you want to send."
-            required
-            label="TEXT"
-            id="text"
-            bind:value={text}
-          />
-          <!-- do you want to hide send checkbox -->
-          <div
-            class="form-control flex flex-row items-center gap-2 m-2 opacity-70"
-          >
-            <input
-              type="checkbox"
-              class="checkbox checkbox-sm"
-              bind:checked={hideText}
+          {#if type === 0}
+            <TextArea
+              bottomLeftLabel="The text you want to send."
+              required
+              label="TEXT"
+              id="text"
+              bind:value={text}
             />
-            <span class="label-text text-sm">
-              When accessing this Send, hide the text by default.
-            </span>
-          </div>
+
+            <div
+              class="form-control flex flex-row items-center gap-2 m-2 opacity-70"
+            >
+              <input
+                type="checkbox"
+                class="checkbox checkbox-sm"
+                bind:checked={hideText}
+              />
+              <span class="label-text text-sm">
+                When accessing this Send, hide the text by default.
+              </span>
+            </div>
+          {/if}
+          {#if type === 1}
+            <div class="form-control w-full">
+              <!-- svelte-ignore a11y-label-has-associated-control -->
+              <label class="label">
+                <span class="label-text">Pick a file</span>
+                <span class="label-text-alt"
+                  >less than {getFileSize(maxFileSize)}</span
+                >
+              </label>
+              <input
+                type="file"
+                class="file-input file-input-bordered w-full"
+                bind:files
+              />
+              {#if files}
+                <div class="flex flex-col gap-2 m-3">
+                  {#each Array.from(files) as file}
+                    <div
+                      class="flex flex-row justify-between items-center gap-2"
+                    >
+                      <div class="text-sm">{file.name}</div>
+                      <div class="text-sm">{getFileSize(file.size)}</div>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+
+              {#if error}
+                <div class="alert alert-error mt-">{error}</div>
+              {/if}
+            </div>
+          {/if}
+          <!-- do you want to hide send checkbox -->
 
           <!-- svelte-ignore a11y-label-has-associated-control -->
           <label class="label">
@@ -227,17 +288,6 @@
                 />
                 <span class="label-text text-sm">
                   Hide my email address from recipients.
-                </span>
-              </div>
-              <!-- Deactivate Send -->
-              <div class="form-control flex flex-row items-center gap-2">
-                <input
-                  type="checkbox"
-                  class="checkbox checkbox-sm"
-                  bind:checked={disableAfterAccess}
-                />
-                <span class="label-text text-sm">
-                  Deactivate this Send after it has been accessed.
                 </span>
               </div>
             </div>

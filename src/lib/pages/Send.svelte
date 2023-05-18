@@ -1,12 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { getSends, type ISendResponse } from '../../services/send'
   import Navbar from '../containers/Navbar.svelte'
   import CreateSendModal from '../containers/send/CreateSendModal.svelte'
   import Filter from '../containers/send/Filter.svelte'
   import SendCard from '../containers/send/SendCard.svelte'
   import VerifyEmail from '../containers/VerifyEmail.svelte'
   import LoadingSpinner from '../components/LoadingSpinner.svelte'
+  import { getSends } from '../../services/send/getSend'
+  import type { ISendResponse } from '../../services/send/types'
 
   let selectedType = 'All'
   let searchString = ''
@@ -27,7 +28,7 @@
       } else {
         return (
           send.name.toLowerCase().includes(searchString.toLowerCase()) &&
-          send.type_ == (selectedType == 'Text' ? 0 : 1)
+          send.send_type == (selectedType == 'Text' ? 0 : 1)
         )
       }
     })

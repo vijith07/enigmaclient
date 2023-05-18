@@ -1,23 +1,30 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import type { IAccessSend } from '../../services/send'
-  import {
-    getSendforAccess,
-    verifySendPassword,
-    decryptAccessSend,
-  } from '../../services/send'
   import PasswordInput from '../components/PasswordInput.svelte'
   import { Link } from 'svelte-navigator'
   import TextArea from '../components/TextArea.svelte'
+  import type {
+    IAccessSend,
+    IFileDataResponse,
+  } from '../../services/send/types'
+  import {
+    decryptAccessFileSend,
+    decryptAccessTextSend,
+    getSendforAccess,
+    verifySendPassword,
+  } from '../../services/send/getSend'
+  import FileDownload from '../components/FileDownload.svelte'
 
   let sendId = ''
   let aesKey = ''
   let requirePassword = false
   let isPasswordCorrect = false
   let password = ''
-  let data = ''
+  let text_data = ''
+  let file_data: IFileDataResponse = null
   let name = ''
   let email = ''
+  let send_type: number = null
   let send: IAccessSend = null
   let hideData = true
   let error: string | null = null
@@ -54,25 +61,37 @@
         isPasswordCorrect = true
         let decryptedData = null
         try {
-          decryptedData = await decryptAccessSend(aesKey, send)
+          if (send.send_type == 0) {
+            decryptedData = await decryptAccessTextSend(aesKey, send)
+          } else {
+          }
         } catch (err) {
           error =
             'Error decrypting data. Please check if the link is correct and try again.'
         }
         name = decryptedData.name
         email = decryptedData.email
-        data = decryptedData.data
+        text_data = decryptedData.data
+        file_data = decryptedData.file_data
       }
     } catch (err) {
       // set timeout to redirect to home page
       error =
         'Error fetching data. Please check if the link is correct and try again.'
-      setTimeout(() => {
-        window.location.replace('/')
-      }, 5000)
-
+      // setTimeout(() => {
+      //   window.location.replace('/')
+      // }, 5000)
     }
   })
+
+  const handleDownload = async () => {
+    try {
+      await decryptAccessFileSend(aesKey, send)
+    } catch (err) {
+      error =
+        'Error decrypting data. Please check if the link is correct and try again.'
+    }
+  }
 
   const verifyPassword = () => {
     if (password.length === 0) {
@@ -86,10 +105,12 @@
           return
         }
         isPasswordCorrect = true
-        let decryptedData = await decryptAccessSend(aesKey, send)
+        let decryptedData = await decryptAccessTextSend(aesKey, send)
         name = decryptedData.name
         email = decryptedData.email
-        data = decryptedData.data
+        send_type = decryptedData.send_type
+        text_data = decryptedData.text_data
+        file_data = decryptedData.file_data
       }
     )
   }
@@ -186,30 +207,35 @@
       {#if email.length > 0}
         <div class="card-body text-xs opacity-40">sender: {email}</div>
       {/if}
-      <TextArea
-        label="Text"
-        bind:value={data}
-        readonly={true}
-        hidden={hideData}
-      />
+      {#if send_type === 0}
+        <TextArea
+          label="Text"
+          bind:value={text_data}
+          readonly={true}
+          hidden={hideData}
+        />
 
-      <button
-        class="btn btn-ghost"
-        on:click={() => {
-          hideData = !hideData
-        }}
-      >
-        Toggle Visibility
-      </button>
-      <!--  button to copy data to clipboard -->
-      <button
-        class="btn btn-ghost w-24 mt-4"
-        on:click={() => {
-          navigator.clipboard.writeText(data)
-        }}
-      >
-        Copy
-      </button>
+        <button
+          class="btn btn-ghost"
+          on:click={() => {
+            hideData = !hideData
+          }}
+        >
+          Toggle Visibility
+        </button>
+        <!--  button to copy data to clipboard -->
+        <button
+          class="btn btn-ghost w-24 mt-4"
+          on:click={() => {
+            navigator.clipboard.writeText(text_data)
+          }}
+        >
+          Copy
+        </button>
+      {/if}
+      {#if send_type === 1}
+        <FileDownload fileData={file_data} onClick = {() => handleDownload()} />
+      {/if}
     </div>
   {/if}
   <div class="p-2">© 2023 Enigma. All rights reserved.</div>

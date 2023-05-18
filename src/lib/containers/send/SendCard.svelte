@@ -1,13 +1,16 @@
 <script lang="ts">
-  import { deleteSend, type ISendResponse } from '../../../services/send'
+  import { deleteSend } from "../../../services/send/deleteSend"
+  import type { ISendResponse } from "../../../services/send/types"
+
 
   export let populateSendList: () => Promise<void>
   export let send: ISendResponse = {
     id: '',
     name: '',
-    type_: 0,
+    send_type: 0,
     access_count: 0,
-    data: '',
+    text_data: '',
+    file_data: null,
     user_id: -1,
     creation_time: '',
     expiration_time: '',
@@ -58,9 +61,9 @@
       {#if send.password && send.password.length > 0}
         <div>🔑</div>
       {/if}
-      {#if send.type_ === 0}
+      {#if send.send_type === 0}
         <div>📄</div>
-      {:else if send.type_ === 1}
+      {:else if send.send_type === 1}
         <div>📁</div>
       {/if}
       <!-- <div class="card-body text-base text-primary">{send.data}</div> -->
@@ -88,9 +91,11 @@
       <div class="card-actions justify-end ml-auto">
         <!-- treedots drop down -->
         <div class="dropdown dropdown-end">
+          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
           <div tabindex="0" class="btn btn-ghost text-white btn-sm rounded-btn">
             . . .
           </div>
+          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
           <ul
             tabindex="0"
             class="p-2 shadow menu dropdown-content bg-base-100 rounded-box w-52"

@@ -1,17 +1,3 @@
-export const getFile = async (file: File) => {
-    return await file.arrayBuffer();
-};
-export const getFileMetaData = async (file: File) => {
-    return {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-    };
-}
-export const arrayBufferToFile = async (arrayBuffer: ArrayBuffer, metaData: any) => {
-    return new File([arrayBuffer], metaData.name, { type: metaData.type });
-}
-
 // get file size in readable format with bytes as the smallest unit
 export const getFileSize = (size: number) => {
     const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
