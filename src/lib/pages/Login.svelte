@@ -38,7 +38,6 @@
       isLoading = true
       res = await userLogin(email, masterPassword)
       if (!redirectUrl) {
-        console.log(redirectUrl, 'redirectUrl')
         window.location.replace('/send')
       } else {
         window.location.replace(redirectUrl)

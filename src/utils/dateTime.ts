@@ -19,3 +19,23 @@ export const convertToNaiveDateTime = (timeOption: string) => {
       return null
   }
 }
+
+// convert seconds to days, hours, minutes, seconds  readable format
+export const convertSecondsToDHMS = (seconds: number) : string => {
+  const days = Math.floor(seconds / (3600*24));
+  const hours = Math.floor(seconds % (3600*24) / 3600);
+  const minutes = Math.floor(seconds % 3600 / 60);
+  const secondsLeft = Math.floor(seconds % 60);
+  if(days > 0) {
+    return days + " days, " + hours + " hours, " + minutes + " minutes, " + secondsLeft + " seconds";
+  }
+  else if(hours > 0) {
+    return hours + " hours, " + minutes + " minutes, " + secondsLeft + " seconds";
+  }
+  else if(minutes > 0) {
+    return minutes + " minutes, " + secondsLeft + " seconds";
+  }
+  else {
+    return secondsLeft + " seconds";
+  }
+}

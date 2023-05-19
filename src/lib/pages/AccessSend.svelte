@@ -3,13 +3,10 @@
   import PasswordInput from '../components/PasswordInput.svelte'
   import { Link } from 'svelte-navigator'
   import TextArea from '../components/TextArea.svelte'
-  import type {
-    IAccessSend,
-    IFileDataResponse,
-  } from '../../services/send/types'
+  import type { IAccessSend } from '../../services/send/types'
   import {
-    decryptAccessFileSend,
-    decryptAccessTextSend,
+    decryptAccessSend,
+    getDecryptedFile,
     getSendforAccess,
     verifySendPassword,
   } from '../../services/send/getSend'
@@ -17,17 +14,15 @@
 
   let sendId = ''
   let aesKey = ''
+  let password = ''
+  let hideData = false
   let requirePassword = false
   let isPasswordCorrect = false
-  let password = ''
-  let text_data = ''
-  let file_data: IFileDataResponse = null
-  let name = ''
-  let email = ''
-  let send_type: number = null
   let send: IAccessSend = null
-  let hideData = true
   let error: string | null = null
+  let passwordError: string | null = null
+  let decryptedData: IAccessSend = null
+  let isDownloadSuccessful = false
 
   const getIdAndKey = () => {
     let url = window.location.href
@@ -50,8 +45,7 @@
     try {
       sendId = getIdAndKey()[0]
       aesKey = getIdAndKey()[1]
-      const response = await getSendforAccess(sendId, aesKey)
-      send = response.send
+      send = await getSendforAccess(sendId)
       hideData = send.hide_data
       if (send.password) {
         requirePassword = true
@@ -59,65 +53,56 @@
       } else {
         requirePassword = false
         isPasswordCorrect = true
-        let decryptedData = null
+
         try {
-          if (send.send_type == 0) {
-            decryptedData = await decryptAccessTextSend(aesKey, send)
-          } else {
-          }
+          decryptedData = await decryptAccessSend(aesKey, send)
         } catch (err) {
           error =
             'Error decrypting data. Please check if the link is correct and try again.'
         }
-        name = decryptedData.name
-        email = decryptedData.email
-        text_data = decryptedData.data
-        file_data = decryptedData.file_data
       }
     } catch (err) {
-      // set timeout to redirect to home page
       error =
         'Error fetching data. Please check if the link is correct and try again.'
-      // setTimeout(() => {
-      //   window.location.replace('/')
-      // }, 5000)
     }
   })
 
   const handleDownload = async () => {
     try {
-      await decryptAccessFileSend(aesKey, send)
+      await getDecryptedFile(decryptedData.file_data, aesKey, send.iv)
+      isDownloadSuccessful = true
     } catch (err) {
       error =
-        'Error decrypting data. Please check if the link is correct and try again.'
+        'Error downloading file. Please check if the link is correct and try again.'
     }
   }
 
   const verifyPassword = () => {
-    if (password.length === 0) {
+    if (send.password.length === 0) {
       return
     }
     verifySendPassword(aesKey, send.iv, send.password, password).then(
       async (response) => {
         if (!response) {
           isPasswordCorrect = false
-          error = 'Password is incorrect'
+          passwordError = 'Password is incorrect'
           return
         }
         isPasswordCorrect = true
-        let decryptedData = await decryptAccessTextSend(aesKey, send)
-        name = decryptedData.name
-        email = decryptedData.email
-        send_type = decryptedData.send_type
-        text_data = decryptedData.text_data
-        file_data = decryptedData.file_data
+        passwordError = null
+        try {
+          decryptedData = await decryptAccessSend(aesKey, send)
+        } catch (err) {
+          error =
+            'Error decrypting data. Please check if the link is correct and try again.'
+        }
       }
     )
   }
 </script>
 
 <div
-  class="flex flex-col pt-4 items-center min-h-screen bg-gradient-to-tr from-base-100 to-slate-800"
+  class="flex flex-col pt-4 items-center min-h-screen bg-gradient-to-b from-base-300 to-slate-800"
 >
   <Link to="/" class=" text-xl flex items-center gap-2 text-primary">
     <svg
@@ -163,7 +148,7 @@
         label="Password"
         bind:value={password}
         autocomplete="new-password"
-        {error}
+        error={passwordError}
         required={false}
       />
       <button class="btn btn-primary mx-10" type="submit"> Verify </button>
@@ -173,7 +158,7 @@
   {#if isPasswordCorrect && !error}
     <!--  show warning if email is empty -->
 
-    {#if email === ''}
+    {#if send?.email?.length === 0}
       <div
         class="alert text-warning border border-warning border-opacity-20 lg:w-2/5 md:w-3/5 w-full p-2 m-4"
       >
@@ -199,44 +184,64 @@
       </div>
     {/if}
 
-    <div
-      class="flex lg:w-2/5 md:w-3/5 w-full justify-end items-center flex-col p-2 m-4"
-    >
-      <div class="text-base text-info uppercase">{name}</div>
-      <div class="divider" />
-      {#if email.length > 0}
-        <div class="card-body text-xs opacity-40">sender: {email}</div>
-      {/if}
-      {#if send_type === 0}
-        <TextArea
-          label="Text"
-          bind:value={text_data}
-          readonly={true}
-          hidden={hideData}
-        />
+    {#if decryptedData}
+      <div
+        class="flex lg:w-2/5 md:w-3/5 w-full justify-end items-center flex-col p-2"
+      >
+        <div class="m-4 opacity-40">From: {send.email}</div>
+        <div class="text-base text-info uppercase">{decryptedData.name}</div>
+        <div class="divider" />
 
-        <button
-          class="btn btn-ghost"
-          on:click={() => {
-            hideData = !hideData
-          }}
-        >
-          Toggle Visibility
-        </button>
-        <!--  button to copy data to clipboard -->
-        <button
-          class="btn btn-ghost w-24 mt-4"
-          on:click={() => {
-            navigator.clipboard.writeText(text_data)
-          }}
-        >
-          Copy
-        </button>
-      {/if}
-      {#if send_type === 1}
-        <FileDownload fileData={file_data} onClick = {() => handleDownload()} />
-      {/if}
+        {#if send?.send_type === 0}
+          <TextArea
+            label="Text"
+            bind:value={decryptedData.text_data}
+            readonly={true}
+            hidden={hideData}
+          />
+
+          <button
+            class="btn btn-ghost"
+            on:click={() => {
+              hideData = !hideData
+            }}
+          >
+            Toggle Visibility
+          </button>
+          <!--  button to copy data to clipboard -->
+          <button
+            class="btn btn-ghost w-24 mt-4"
+            on:click={() => {
+              navigator.clipboard.writeText(decryptedData.text_data)
+            }}
+          >
+            Copy
+          </button>
+        {/if}
+        {#if send.send_type === 1}
+          <!-- Note : You can download the file only once. -->
+          <div class="flex flex-col items-center m-4">
+            <div class="text-base text-info uppercase">
+              {decryptedData.file_data.file_name}
+            </div>
+          </div>
+          <FileDownload
+            fileData={decryptedData.file_data}
+            onClick={() => handleDownload()}
+            disabled={isDownloadSuccessful}
+            secondsBeforeDisabled={5 * 60}
+          />
+          <!--  Note that the link will expire after 5 minutes. -->
+        {/if}
+      </div>
+    {/if}
+    <!--  Donot refresh the page. You may loose the access to this send. -->
+    <div class="flex lg:w-2/5 md:w-3/5 items-center w-full flex-col">
+      <div class="divider" />
+      <div class="text-sm opacity-75 text-warning">
+        Warning: Do not refresh the page. You may loose the access to this send.
+      </div>
     </div>
   {/if}
-  <div class="p-2">© 2023 Enigma. All rights reserved.</div>
+  <div class="m-6 p-2">© 2023 Enigma. All rights reserved.</div>
 </div>

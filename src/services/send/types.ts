@@ -1,25 +1,24 @@
 export const APIURL = 'http://localhost:8000'
 
-export interface ISend {
+export interface ICreateSendRequest {
   name: string
-  type: number
-  text: string
-  hideText: boolean
-  expiryDate: string
-  deleteDate: string
+  send_type: number | null
+  text_data: string
+  file_data: IFileDataRequest
   notes: string
   password: string
-  shareOnSave: boolean
-  hideEmail: boolean
-  accessLimit: number
+  max_access_count: number
+  hide_email: boolean
+  encrypted_key: string
+  iv: string
+  hide_data: boolean
+  expiration_time: string
+  deletion_time: string
 }
-export interface ISendResponse {
+export interface ISend {
   access_count: number
   creation_time: string
-  text_data: string
-  file_data: IFileData
   deletion_time: string
-  disabled: boolean
   encrypted_key: string
   expiration_time: string
   hide_data: boolean
@@ -33,26 +32,28 @@ export interface ISendResponse {
   revision_time: string
   send_type: number
   user_id: number
+  text_data: string
+  file_data: IFileData
 }
 
 export interface IFileDataRequest {
-  name: string
-  type: string
-  size: number
+  file_name: string
+  file_type: string
+  file_size: number
 }
 
 export interface IFileData {
   id: string
-  name: string
-  type: string
-  size: number
+  file_name: string
+  file_type: string
+  file_size: number
 }
 
 export interface IFileDataResponse {
   id: string
-  name: string
-  type: string
-  size: number
+  file_name: string
+  file_type: string
+  file_size: number
   url: string
 }
 export interface IAccessSend {

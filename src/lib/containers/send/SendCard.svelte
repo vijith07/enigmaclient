@@ -1,10 +1,10 @@
 <script lang="ts">
   import { deleteSend } from "../../../services/send/deleteSend"
-  import type { ISendResponse } from "../../../services/send/types"
+  import type { ISend } from "../../../services/send/types"
 
 
   export let populateSendList: () => Promise<void>
-  export let send: ISendResponse = {
+  export let send: ISend = {
     id: '',
     name: '',
     send_type: 0,
@@ -14,7 +14,6 @@
     user_id: -1,
     creation_time: '',
     expiration_time: '',
-    disabled: false,
     hide_data: false,
     iv: '',
     password: '',
@@ -62,9 +61,9 @@
         <div>🔑</div>
       {/if}
       {#if send.send_type === 0}
-        <div>📄</div>
+        <div>✒️</div>
       {:else if send.send_type === 1}
-        <div>📁</div>
+        <div>📄</div>
       {/if}
       <!-- <div class="card-body text-base text-primary">{send.data}</div> -->
       <!--  if max_access_count is set, display a badge -->

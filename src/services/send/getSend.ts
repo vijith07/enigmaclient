@@ -1,6 +1,6 @@
 import {
   APIURL,
-  type ISendResponse,
+  type ISend,
   type IAccessSend,
   type IFileData,
   type IFileDataResponse,
@@ -21,19 +21,8 @@ export const getSends = async () => {
     throw new Error('User not found')
   }
   try {
-    const res = await fetch(`${APIURL}/send`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-      },
-    })
-    if (!res.ok) {
-      throw new Error(await res.json().then((data) => data.message))
-    }
-    const data: ISendResponse[] = await res.json()
-
-    // get wrapped private key from session storage
+    const res = await requestSends()
+    const data: ISend[] = await res.json()
     const user = sessionStorage.getItem('user')
     if (!user) {
       throw new Error('User not found')
@@ -61,9 +50,9 @@ export const getSends = async () => {
 
 // decrypt the send response and return the decrypted send
 export const decryptSend = async (
-  send: ISendResponse,
+  send: ISend,
   privateKey: CryptoKey
-): Promise<ISendResponse> => {
+): Promise<ISend> => {
   // using crypto key decrypt the aes key
   const aesKey = await importAESKey(
     await rsaDecrypt(str2ab(b642str(send.encrypted_key)), privateKey),
@@ -71,25 +60,25 @@ export const decryptSend = async (
   )
   // convert iv to Uint8Array
   const iv = str2ua(b642str(send.iv))
-  // decrypt the name
-  let name = ''
-  if (send.name !== '') {
-    name = ab2str(await aesDecrypt(str2ab(b642str(send.name)), aesKey, iv))
+
+  const name = await decryptData(send.name, aesKey, iv)
+  const text_data = await decryptData(send.text_data, aesKey, iv)
+
+  let file_data: IFileData = {
+    file_name: '',
+    file_type: '',
+    id: '',
+    file_size: 0,
   }
-  let text_data = ''
-  if (send.send_type === 0 && send.text_data !== '') {
-    text_data = ab2str(
-      await aesDecrypt(str2ab(b642str(send.text_data)), aesKey, iv)
-    )
-  }
-  let file_data: IFileData = null
   if (send.send_type === 1 && send.file_data !== null) {
-    file_data.name = ab2str(
-      await aesDecrypt(str2ab(b642str(send.file_data.name)), aesKey, iv)
+    file_data.file_name = await decryptData(
+      send.file_data.file_name,
+      aesKey,
+      iv
     )
-    file_data.type = send.file_data.type
+    file_data.file_type = send.file_data.file_type
     file_data.id = send.file_data.id
-    file_data.size = send.file_data.size
+    file_data.file_size = send.file_data.file_size
   }
 
   let notes = ''
@@ -111,7 +100,6 @@ export const decryptSend = async (
     notes,
     password: password,
     hide_email: send.hide_email,
-    disabled: send.disabled,
     max_access_count: send.max_access_count,
     access_count: send.access_count,
     creation_time: send.creation_time,
@@ -128,7 +116,7 @@ export const decryptSend = async (
 }
 
 // getSend for access
-export const getSendforAccess = async (id: string, key: string) => {
+export const getSendforAccess = async (id: string): Promise<IAccessSend> => {
   try {
     const res = await fetch(`${APIURL}/receive/${id}`, {
       method: 'GET',
@@ -139,7 +127,7 @@ export const getSendforAccess = async (id: string, key: string) => {
     if (!res.ok) {
       throw new Error(await res.json().then((data) => data.message))
     }
-    const data = await res.json()
+    const data: IAccessSend = await res.json().then((data) => data.send)
     return data
   } catch (error) {
     throw new Error(error)
@@ -167,104 +155,54 @@ export const verifySendPassword = async (
   return false
 }
 
-// decrypt send data
-export const decryptAccessTextSend = async (
+// create a common decrypt function for text and file AccessSend
+export const decryptAccessSend = async (
   key: string,
   accessSend: IAccessSend
-) => {
+): Promise<IAccessSend> => {
   const ivUint8 = str2ua(b642str(accessSend.iv))
   const aesKey = await importAESKey(str2ab(b642str(key)), [
     'encrypt',
     'decrypt',
   ])
-  let decryptedTextData = ''
-  if (accessSend.send_type === 0) {
-    decryptedTextData = ab2str(
-      await aesDecrypt(str2ab(b642str(accessSend.text_data)), aesKey, ivUint8)
-    )
+  let decryptedTextData = await decryptData(
+    accessSend.text_data,
+    aesKey,
+    ivUint8
+  )
+  let decryptedFileData: IFileDataResponse = {
+    file_name: '',
+    file_type: '',
+    id: '',
+    file_size: 0,
+    url: '',
   }
-  let decryptedFileData: IFileDataResponse = null
   if (accessSend.send_type === 1) {
-    decryptedFileData.name = ab2str(
-      await aesDecrypt(
-        str2ab(b642str(accessSend.file_data.name)),
-        aesKey,
-        ivUint8
-      )
+    decryptedFileData.file_name = await decryptData(
+      accessSend.file_data.file_name,
+      aesKey,
+      ivUint8
     )
-    decryptedFileData.type = accessSend.file_data.type
+    decryptedFileData.file_type = accessSend.file_data.file_type
     decryptedFileData.id = accessSend.file_data.id
-    decryptedFileData.size = accessSend.file_data.size
+    decryptedFileData.file_size = accessSend.file_data.file_size
     decryptedFileData.url = accessSend.file_data.url
   }
 
-  const decryptedName = ab2str(
-    await aesDecrypt(str2ab(b642str(accessSend.name)), aesKey, ivUint8)
-  )
-  let decryptedEmail = ''
-  if (accessSend.email.length > 0) {
-    decryptedEmail = b642str(accessSend.email)
-  }
-  return {
-    text_data: decryptedTextData,
-    file_data: decryptedFileData,
-    send_type: accessSend.send_type,
-    email: decryptedEmail,
-    name: decryptedName,
-  }
-}
+  const decryptedName = await decryptData(accessSend.name, aesKey, ivUint8)
 
-export const decryptAccessFileSend = async (
-  key: string,
-  accessSend: IAccessSend
-) => {
-  const ivUint8 = str2ua(b642str(accessSend.iv))
-  const aesKey = await importAESKey(str2ab(b642str(key)), [
-    'encrypt',
-    'decrypt',
-  ])
-  let decryptedTextData = ''
-  if (accessSend.send_type === 0) {
-    decryptedTextData = ab2str(
-      await aesDecrypt(str2ab(b642str(accessSend.text_data)), aesKey, ivUint8)
-    )
-  }
-  let decryptedFileData: IFileDataResponse = null
-  if (accessSend.send_type === 1) {
-    decryptedFileData.name = ab2str(
-      await aesDecrypt(
-        str2ab(b642str(accessSend.file_data.name)),
-        aesKey,
-        ivUint8
-      )
-    )
-    decryptedFileData.type = accessSend.file_data.type
-    decryptedFileData.id = accessSend.file_data.id
-    decryptedFileData.size = accessSend.file_data.size
-    decryptedFileData.url = accessSend.file_data.url
-  }
-  let encryptedFile
-  try {
-    encryptedFile = await getFileData(decryptedFileData)
-    let decryptedFile = await decryptFile(encryptedFile, aesKey, ivUint8)
-    downloadFile(decryptedFile, decryptedFileData.name)
-  } catch (error) {
-    throw new Error(error)
-  }
-  const decryptedName = ab2str(
-    await aesDecrypt(str2ab(b642str(accessSend.name)), aesKey, ivUint8)
-  )
-  let decryptedEmail = ''
-  if (accessSend.email.length > 0) {
-    decryptedEmail = b642str(accessSend.email)
-  }
-  return {
-    text_data: decryptedTextData,
-    file_data: decryptedFileData,
-    send_type: accessSend.send_type,
-    email: decryptedEmail,
+  let decryptedAccessSend: IAccessSend = {
     name: decryptedName,
+    send_type: accessSend.send_type,
+    encrypted_key: accessSend.encrypted_key,
+    iv: accessSend.iv,
+    file_data: decryptedFileData,
+    text_data: decryptedTextData,
+    hide_data: accessSend.hide_data,
+    email: accessSend.email,
+    password: accessSend.password,
   }
+  return decryptedAccessSend
 }
 
 //  send get request to s3 presigned url to get file data
@@ -273,7 +211,7 @@ export const getFileData = async (file_data: IFileDataResponse) => {
     const res = await fetch(file_data.url, {
       method: 'GET',
       headers: {
-        'Content-Type': file_data.type,
+        'Content-Type': file_data.file_type,
       },
     })
     if (!res.ok) {
@@ -282,8 +220,8 @@ export const getFileData = async (file_data: IFileDataResponse) => {
     const data = await res.blob()
     const encryptedFile = await data.arrayBuffer()
     // create file
-    const file = new File([encryptedFile], file_data.name, {
-      type: file_data.type,
+    const file = new File([encryptedFile], file_data.file_name, {
+      type: file_data.file_type,
     })
     return file
   } catch (error) {
@@ -303,4 +241,51 @@ export const decryptFile = async (
     type: file.type,
   })
   return decryptedFile
+}
+
+export const getDecryptedFile = async (
+  decryptedFileData: IFileDataResponse,
+  key: string,
+  iv: string
+) => {
+  const ivUint8 = str2ua(b642str(iv))
+  const aesKey = await importAESKey(str2ab(b642str(key)), [
+    'encrypt',
+    'decrypt',
+  ])
+  try {
+    const encryptedFile = await getFileData(decryptedFileData)
+    let decryptedFile = await decryptFile(encryptedFile, aesKey, ivUint8)
+    downloadFile(decryptedFile, decryptedFileData.file_name)
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+async function requestSends() {
+  const res = await fetch(`${APIURL}/send`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+    },
+  })
+  if (!res.ok) {
+    throw new Error(await res.json().then((data) => data.message))
+  }
+  return res
+}
+
+async function decryptData(
+  data: string,
+  aesKey: CryptoKey,
+  iv: Uint8Array
+): Promise<string> {
+  if (!data && data.length === 0) {
+    return ''
+  }
+  const decryptedData = ab2str(
+    await aesDecrypt(str2ab(b642str(data)), aesKey, iv)
+  )
+  return decryptedData
 }

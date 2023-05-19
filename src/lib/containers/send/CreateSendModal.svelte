@@ -1,9 +1,8 @@
 <script lang="ts">
   import {
-    createSendFile,
-    createSendText,
+    createSend,
   } from '../../../services/send/createSend'
-  import type { ISend } from '../../../services/send/types'
+  import type { ICreateSendRequest } from '../../../services/send/types'
   import { getFileSize } from '../../../utils/file'
   import Input from '../../components/Input.svelte'
   import PasswordInput from '../../components/PasswordInput.svelte'
@@ -24,58 +23,62 @@
 
   let isLoading = false
   let error = ''
-  let name = ''
-  let type = 0
-  let text = ''
-  let hideText = false
-  let expiryDate = 'Never'
-  let deleteDate = '7 days'
-  let notes = ''
-  let password = ''
-  let shareOnSave = true
-  let hideEmail = false
-  let accessLimit: number = null
   let files: FileList = null
+  let shareOnSave = true
+  
+  let newSend: ICreateSendRequest = {
+    name : '',
+    send_type : null,
+    text_data : '',
+    hide_data : false,
+    expiration_time : 'Never',
+    deletion_time : '7 days',
+    notes : '',
+    password : '',
+    encrypted_key : '',
+    hide_email : false,
+    max_access_count : -1,
+    file_data : null,
+    iv : '',
 
-  const clearForm = () => {
-    name = ''
-    type = 0
-    text = ''
-    hideText = false
-    expiryDate = 'Never'
-    deleteDate = '7 days'
-    notes = ''
-    password = ''
-    shareOnSave = true
-    hideEmail = false
-    accessLimit = 0
   }
 
-  async function handleSubmit() {
-    const newSend: ISend = {
-      name,
-      type,
-      text,
-      hideText,
-      expiryDate,
-      deleteDate,
-      notes,
-      password,
-      shareOnSave,
-      hideEmail,
-      accessLimit,
+
+  const clearForm = () => {
+    newSend = {
+      name : '',
+      send_type : null,
+      text_data : '',
+      hide_data : false,
+      expiration_time : 'Never',
+      deletion_time : '7 days',
+      notes : '',
+      password : '',
+      encrypted_key : '',
+      hide_email : false,
+      max_access_count : -1,
+      file_data : null,
+      iv : '',
     }
+    files = null
+    shareOnSave = true
+    error = ''
+  }
+  async function handleSubmit() {
     try {
       isLoading = true
-      console.log(type)
-      if (type == 0) {
-        await createSendText(newSend)
-      } else if (type == 1 && error == '') {
-        await createSendFile(newSend, files[0])
+      if (newSend.send_type == 0 && error == '') {
+        await createSend(newSend)
+      } else if (newSend.send_type == 1 && error == '') {
+        if (!files) {
+          error = 'Please select a file'
+          throw new Error(error)
+        }
+        await createSend(newSend, files[0])
       }
       clearForm()
       isLoading = false
-      // populateSendList()
+      populateSendList()
     } catch (error) {
       isLoading = false
       error = error.message
@@ -123,7 +126,7 @@
               id="name"
               bottomLeftLabel="A friendly name to describe this Send."
               required={true}
-              bind:value={name}
+              bind:value={newSend.name}
             />
           </div>
           <div class="form-control flex flex-col">
@@ -139,7 +142,7 @@
                 class="radio"
                 checked
                 on:change={() => {
-                  type = 0
+                  newSend.send_type = 0
                 }}
               />
               <span class="label-text">Text</span>
@@ -150,19 +153,19 @@
                 name="radio-10"
                 class="radio"
                 on:change={() => {
-                  type = 1
+                  newSend.send_type = 1
                 }}
               />
               <div class="label-text">File</div>
             </div>
           </div>
-          {#if type === 0}
+          {#if newSend.send_type === 0}
             <TextArea
               bottomLeftLabel="The text you want to send."
               required
               label="TEXT"
               id="text"
-              bind:value={text}
+              bind:value={newSend.text_data}
             />
 
             <div
@@ -171,14 +174,14 @@
               <input
                 type="checkbox"
                 class="checkbox checkbox-sm"
-                bind:checked={hideText}
+                bind:checked={newSend.hide_data}
               />
               <span class="label-text text-sm">
                 When accessing this Send, hide the text by default.
               </span>
             </div>
           {/if}
-          {#if type === 1}
+          {#if newSend.send_type === 1}
             <div class="form-control w-full">
               <!-- svelte-ignore a11y-label-has-associated-control -->
               <label class="label">
@@ -242,7 +245,7 @@
                   bottomLeftLabel="The Send will be permanently deleted on the specified date and time."
                   required={true}
                   variant={'medium'}
-                  bind:value={deleteDate}
+                  bind:value={newSend.deletion_time}
                   options={timeOptions}
                 />
                 <Select
@@ -251,7 +254,7 @@
                   bottomLeftLabel="If set, the Send will expire on the specified date and time."
                   required={true}
                   variant={'medium'}
-                  bind:value={expiryDate}
+                  bind:value={newSend.expiration_time}
                   options={[...timeOptions, 'Never']}
                 />
 
@@ -263,28 +266,28 @@
                   id="accessLimit"
                   type="number"
                   bottomLeftLabel="If set, users will only be able to access this Send a limited number of times."
-                  bind:value={accessLimit}
+                  bind:value={newSend.max_access_count}
                 />
               </div>
               <PasswordInput
                 label="Password"
                 topRightLabel="Optionally require a password for users to access this send"
                 autocomplete="new-password"
-                bind:value={password}
+                bind:value={newSend.password}
                 required={false}
                 id="send-password"
               />
               <TextArea
                 label="Notes"
                 bottomLeftLabel="A private note to help you remember what this Send is for"
-                bind:value={notes}
+                bind:value={newSend.notes}
               />
               <!-- Hide email -->
               <div class="form-control flex flex-row items-center gap-2 my-2">
                 <input
                   type="checkbox"
                   class="checkbox checkbox-sm"
-                  bind:checked={hideEmail}
+                  bind:checked={newSend.hide_email}
                 />
                 <span class="label-text text-sm">
                   Hide my email address from recipients.
