@@ -60,10 +60,8 @@
   }
 
   const onFileDownload = async () => {
-    console.log('download')
     try {
       downloadURL = await requestSendDownloadLink(send.id)
-      console.log(downloadURL)
       await getDecryptedFile(
         { ...send.file_data, url: downloadURL },
         send.encrypted_key,
@@ -81,7 +79,7 @@
   <!-- The button to open modal -->
   <label
     for="update-{send.id}"
-    class="btn btn-ghost text-primary hover:bg-transparent underline"
+    class="btn btn-ghost text-lg hover:bg-transparent hover:text-primary"
     >{oldSend.name}</label
   >
   <input type="checkbox" id="update-{send.id}" class="modal-toggle" />
@@ -105,7 +103,7 @@
           <div class="w-1/2">
             <Input
               label="NAME"
-              id="name"
+              id="{send.id}-name"
               bottomLeftLabel="A friendly name to describe this Send."
               required={true}
               bind:value={send.name}
@@ -116,7 +114,7 @@
               bottomLeftLabel="The text you want to send."
               required
               label="TEXT"
-              id="text"
+              id="{send.id}-text"
               bind:value={send.text_data}
             />
 
@@ -155,7 +153,7 @@
           <div class="flex flex-row items-center gap-2">
             <Input
               label="LINK"
-              id="link"
+              id="{send.id}-link"
               bottomLeftLabel="The link to this Send."
               required={true}
               readonly={true}
@@ -197,8 +195,8 @@
               <!--  show oldSend.deletion_time and oldSend.expiration_time in text format -->
               <div class="flex flex-wrap gap-1">
                 <Select
-                  label="DELETE"
-                  id="delete"
+                  label="DELETE DATE"
+                  id="{send.id}-delete"
                   topRightLabel={new Date(
                     oldSend.deletion_time
                   ).toLocaleString()}
@@ -208,8 +206,8 @@
                   options={timeOptions}
                 />
                 <Select
-                  label="EXPIRY"
-                  id="expiryTime"
+                  label="EXPIRY DATE"
+                  id="{send.id}-expiryTime"
                   topRightLabel={new Date(
                     oldSend.expiration_time
                   ).toLocaleString()}
@@ -224,7 +222,7 @@
               <div class="w-1/2">
                 <Input
                   label="ACCESS LIMIT"
-                  id="accessLimit"
+                  id="{send.id}-accessLimit"
                   type="number"
                   bottomLeftLabel="If set, users will only be able to access this Send a limited number of times."
                   bind:value={send.max_access_count}
@@ -236,10 +234,11 @@
                 autocomplete="new-password"
                 bind:value={send.password}
                 required={false}
-                id="send-password"
+                id="{send.id}-send-password"
               />
               <TextArea
                 label="Notes"
+                id="{send.id}-notes"
                 bottomLeftLabel="A private note to help you remember what this Send is for"
                 bind:value={send.notes}
               />

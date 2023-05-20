@@ -39,7 +39,6 @@ export const getSends = async () => {
     // decrypt each send
     const decryptedSends = await Promise.all(
       data.map(async (send) => {
-        console.log(send)
         return await decryptSend(send, privateKey)
       })
     )
@@ -61,7 +60,6 @@ export const decryptSend = async (
     ['encrypt', 'decrypt']
   )
 
-  console.log(aesKey)
 
   // convert iv to Uint8Array
   const iv = str2ua(b642str(send.iv))
@@ -93,7 +91,6 @@ export const decryptSend = async (
   const password = await decryptData(send.password, aesKey, iv)
   const exportedAesKey = str2b64(ab2str(await exportAESKey(aesKey)))
 
-  console.log(send)
 
   return {
     name,
@@ -150,12 +147,9 @@ export const verifySendPassword = async (
     'decrypt',
   ])
 
-  console.log(aesKey)
-
   const decryptedPassword = ab2str(
     await aesDecrypt(str2ab(b642str(send_password)), aesKey, ivUint8)
   )
-  console.log(decryptedPassword)
   if (decryptedPassword === user_password) {
     return true
   }
@@ -289,8 +283,6 @@ export async function decryptData(
   iv: Uint8Array
 ): Promise<string> {
   // if data is empty or undefined or null return empty string
-  console.log(data)
-
   if (!data) {
     return ''
   }

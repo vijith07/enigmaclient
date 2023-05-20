@@ -1,5 +1,4 @@
 export const convertToNaiveDateTime = (timeOption: string) => {
-  console.log('timeOption', timeOption)
   const now = new Date()
   switch (timeOption) {
     case '1 hour':
@@ -15,7 +14,7 @@ export const convertToNaiveDateTime = (timeOption: string) => {
     case '30 days':
       return new Date(now.setDate(now.getDate() + 30)).toJSON()
     case 'Never':
-      return new Date('9999-12-31T23:59:59.999Z').toJSON()
+      return new Date('2100-01-01T00:00:00.000Z').toJSON()
     default:
       return timeOption
   }

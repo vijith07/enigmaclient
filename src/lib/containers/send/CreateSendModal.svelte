@@ -219,24 +219,6 @@
               {/if}
             </div>
           {/if}
-          <!-- do you want to hide send checkbox -->
-
-          <!-- svelte-ignore a11y-label-has-associated-control -->
-          <label class="label">
-            <span class="label-text opacity-50 mt-2">SHARE</span>
-          </label>
-          <div
-            class="form-control flex flex-row items-center gap-2 m-2 opacity-70"
-          >
-            <input
-              type="checkbox"
-              class="checkbox checkbox-sm"
-              bind:checked={shareOnSave}
-            />
-            <span class="label-text text-sm">
-              Copy the link to this Send to your clipboard upon save.
-            </span>
-          </div>
           <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
           <div tabindex="0" class="collapse collapse-arrow mt-6 -mx-2">
             <input type="checkbox" class="peer" />
@@ -286,6 +268,7 @@
               <TextArea
                 label="Notes"
                 bottomLeftLabel="A private note to help you remember what this Send is for"
+                id="notes"
                 bind:value={newSend.notes}
               />
               <!-- Hide email -->
