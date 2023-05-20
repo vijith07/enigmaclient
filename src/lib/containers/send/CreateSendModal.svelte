@@ -1,7 +1,5 @@
 <script lang="ts">
-  import {
-    createSend,
-  } from '../../../services/send/createSend'
+  import { createSend } from '../../../services/send/createSend'
   import type { ICreateSendRequest } from '../../../services/send/types'
   import { getFileSize } from '../../../utils/file'
   import Input from '../../components/Input.svelte'
@@ -25,40 +23,38 @@
   let error = ''
   let files: FileList = null
   let shareOnSave = true
-  
+
   let newSend: ICreateSendRequest = {
-    name : '',
-    send_type : null,
-    text_data : '',
-    hide_data : false,
-    expiration_time : 'Never',
-    deletion_time : '7 days',
-    notes : '',
-    password : '',
-    encrypted_key : '',
-    hide_email : false,
-    max_access_count : -1,
-    file_data : null,
-    iv : '',
-
+    name: '',
+    send_type: null,
+    text_data: '',
+    hide_data: false,
+    expiration_time: 'Never',
+    deletion_time: '7 days',
+    notes: '',
+    password: '',
+    encrypted_key: '',
+    hide_email: false,
+    max_access_count: null,
+    file_data: null,
+    iv: '',
   }
-
 
   const clearForm = () => {
     newSend = {
-      name : '',
-      send_type : null,
-      text_data : '',
-      hide_data : false,
-      expiration_time : 'Never',
-      deletion_time : '7 days',
-      notes : '',
-      password : '',
-      encrypted_key : '',
-      hide_email : false,
-      max_access_count : -1,
-      file_data : null,
-      iv : '',
+      name: '',
+      send_type: null,
+      text_data: '',
+      hide_data: false,
+      expiration_time: 'Never',
+      deletion_time: '7 days',
+      notes: '',
+      password: '',
+      encrypted_key: '',
+      hide_email: false,
+      max_access_count: null,
+      file_data: null,
+      iv: '',
     }
     files = null
     shareOnSave = true
@@ -67,6 +63,7 @@
   async function handleSubmit() {
     try {
       isLoading = true
+      validateSend(newSend)
       if (newSend.send_type == 0 && error == '') {
         await createSend(newSend)
       } else if (newSend.send_type == 1 && error == '') {
@@ -85,12 +82,26 @@
     }
   }
 
-  $: if (files) {
-    if (files[0].size > maxFileSize) {
-      files = null
+  const validateSend = (send: ICreateSendRequest) => {
+    if (!send.name) {
+      error = 'Please enter a name'
+      throw new Error(error)
+    }
+    if (send.send_type == null) {
+      error = 'Please select a send type'
+      throw new Error(error)
+    }
+    if (send.send_type == 0 && !send.text_data) {
+      error = 'Please enter text'
+      throw new Error(error)
+    }
+    if (send.send_type == 1 && !files) {
+      error = 'Please select a file'
+      throw new Error(error)
+    }
+    if (send.send_type == 1 && files[0].size > maxFileSize) {
       error = `File size exceeds ${getFileSize(maxFileSize)}`
-    } else {
-      error = ''
+      throw new Error(error)
     }
   }
 </script>
@@ -104,7 +115,7 @@
   >
   <input type="checkbox" id="create-send-modal" class="modal-toggle" />
   <label
-    class="modal modal-bottom sm:modal-middle cursor-pointer"
+    class="modal modal-bottom sm:modal-middle cursor-pointer ease-in-out duration-300 bg-transparent"
     for="create-send-modal"
   >
     <label class="modal-box relative" for="">
@@ -140,7 +151,6 @@
                 readonly
                 name="radio-10"
                 class="radio"
-                checked
                 on:change={() => {
                   newSend.send_type = 0
                 }}
@@ -207,10 +217,6 @@
                   {/each}
                 </div>
               {/if}
-
-              {#if error}
-                <div class="alert alert-error mt-">{error}</div>
-              {/if}
             </div>
           {/if}
           <!-- do you want to hide send checkbox -->
@@ -237,7 +243,7 @@
             <div class="collapse-title text-sm">OPTIONS</div>
             <div class="collapse-content flex flex-col gap-2">
               <!-- expiry time select with multiple options -->
-              <div class="flex flex-row gap-2">
+              <div class="flex flex-row gap-1">
                 <!-- delete options -->
                 <Select
                   label="DELETE DATE"

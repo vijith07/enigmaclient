@@ -1,22 +1,23 @@
 export const convertToNaiveDateTime = (timeOption: string) => {
+  console.log('timeOption', timeOption)
   const now = new Date()
   switch (timeOption) {
     case '1 hour':
-      return new Date(now.setHours(now.getHours() + 1))
+      return new Date(now.setHours(now.getHours() + 1)).toJSON()
     case '1 day':
-      return new Date(now.setDate(now.getDate() + 1))
+      return new Date(now.setDate(now.getDate() + 1)).toJSON()
     case '2 days':
-      return new Date(now.setDate(now.getDate() + 2))
+      return new Date(now.setDate(now.getDate() + 2)).toJSON()
     case '3 days':
-      return new Date(now.setDate(now.getDate() + 3))
+      return new Date(now.setDate(now.getDate() + 3)).toJSON()
     case '7 days':
-      return new Date(now.setDate(now.getDate() + 7))
+      return new Date(now.setDate(now.getDate() + 7)).toJSON()
     case '30 days':
-      return new Date(now.setDate(now.getDate() + 30))
+      return new Date(now.setDate(now.getDate() + 30)).toJSON()
     case 'Never':
-        return new Date(now.setDate(now.getDate() + 365))
+      return new Date('9999-12-31T23:59:59.999Z').toJSON()
     default:
-      return null
+      return timeOption
   }
 }
 
@@ -38,4 +39,9 @@ export const convertSecondsToDHMS = (seconds: number) : string => {
   else {
     return secondsLeft + " seconds";
   }
+}
+
+export const convertDateTimeToReadable = (datetime: string) : string => {
+  const date = new Date(datetime)
+  return date.toLocaleString()
 }

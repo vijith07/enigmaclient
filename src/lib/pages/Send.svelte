@@ -7,16 +7,16 @@
   import VerifyEmail from '../containers/VerifyEmail.svelte'
   import LoadingSpinner from '../components/LoadingSpinner.svelte'
   import { getSends } from '../../services/send/getSend'
-  import type { ISendResponse } from '../../services/send/types'
+  import type { ISend } from '../../services/send/types'
 
   let selectedType = 'All'
   let searchString = ''
   let isLoading = false
   let error = ''
 
-  let sendList: ISendResponse[] = []
+  let sendList: ISend[] = []
 
-  let filteredSendList: ISendResponse[] = []
+  let filteredSendList: ISend[] = []
 
   const handleFilter = (search, type) => {
     searchString = search
@@ -24,7 +24,7 @@
     // filter the sendList
     filteredSendList = sendList.filter((send) => {
       if (selectedType == 'All') {
-        return send.name.toLowerCase().includes(searchString.toLowerCase())
+        return send.name?.toLowerCase().includes(searchString.toLowerCase())
       } else {
         return (
           send.name.toLowerCase().includes(searchString.toLowerCase()) &&

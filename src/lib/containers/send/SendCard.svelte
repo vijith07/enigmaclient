@@ -1,29 +1,11 @@
 <script lang="ts">
   import { deleteSend } from "../../../services/send/deleteSend"
   import type { ISend } from "../../../services/send/types"
+  import EditSendModal from "./EditSendModal.svelte"
 
 
   export let populateSendList: () => Promise<void>
-  export let send: ISend = {
-    id: '',
-    name: '',
-    send_type: 0,
-    access_count: 0,
-    text_data: '',
-    file_data: null,
-    user_id: -1,
-    creation_time: '',
-    expiration_time: '',
-    hide_data: false,
-    iv: '',
-    password: '',
-    deletion_time: '',
-    encrypted_key: '',
-    hide_email: false,
-    max_access_count: 0,
-    notes: '',
-    revision_time: '',
-  }
+  export let send: ISend = null
   const shareLink: string = `http://localhost:5173/sa/${send.id}/${send.encrypted_key}`
 
   let isLoading = false
@@ -52,10 +34,12 @@
 {#if !isLoading && !error && !success}
   <div class="card bg-transparent shadow-lg">
     <div class="card-body flex flex-row items-center">
-      <div class="card-title text-base text-white">{send.name}</div>
+      <div class="card-title text-base text-white">
+        <EditSendModal oldSend={send} populateSendList={populateSendList} />
+      </div>
+
       <!--  if the send is disabled, display a warning -->
       <div class="card-title text-base text-warning">{error}</div>
-
       <!--  if the send is expired, display a warning -->
       {#if send.password && send.password.length > 0}
         <div>🔑</div>

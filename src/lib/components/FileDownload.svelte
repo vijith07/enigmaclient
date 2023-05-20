@@ -8,6 +8,7 @@
   export let onClick: () => void = null
   export let disabled: boolean = false
   export let secondsBeforeDisabled: number | null = null
+  export let showWarning: boolean = false
 
   let timeSpent = 0
 
@@ -22,7 +23,7 @@
     }
   })
 
-  $: disabled = disabled || timeSpent >= secondsBeforeDisabled
+  $: disabled = disabled || secondsBeforeDisabled!=null && timeSpent >= secondsBeforeDisabled
 </script>
 
 <div class=" flex flex-col items-center gap-4 justify-center">
@@ -42,7 +43,7 @@
     <!--  Click on this button to download the file -->
     <!-- Show note -->
 
-    <button class="btn btn-outline btn-info" {disabled} on:click={onClick}>
+    <button class="btn btn-outline btn-info" type="button" {disabled} on:click={onClick}>
       Download File {getFileSize(fileData.file_size)}
     </button>
     {#if secondsBeforeDisabled && !disabled}
@@ -53,12 +54,14 @@
       />
     {/if}
   </div>
-  {#if disabled}
+  {#if disabled && showWarning}
     <p class="text-warning opacity-75 text-sm">
       Link has expired. Please contact the sender or try again.
     </p>
   {/if}
-  <div class="text-base text-info opacity-75 font-bold">
-    Note: You can download the file only once.
-  </div>
+  {#if showWarning}
+    <div class="text-base text-info opacity-75 font-bold">
+      Note: You can download the file only once.
+    </div>
+  {/if}
 </div>

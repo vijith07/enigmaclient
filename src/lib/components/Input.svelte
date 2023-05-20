@@ -11,6 +11,7 @@
   export let required = false
   export let variant : 'small'|'medium'|'large' = 'large'
   export let min : number = 0
+  export let readonly = false
 
   function handleInput({ target: t }) {
     if (type === 'number') {
@@ -34,6 +35,7 @@
   <input
     {type}
     {min}
+    {readonly}
     {placeholder}
     class="input w-full input-bordered {error ? 'border-red-500' : ''} focus:border-0 {variant === 'small' ? 'w-32' : variant === 'large' ? '' : 'w-56'}"
     {id}

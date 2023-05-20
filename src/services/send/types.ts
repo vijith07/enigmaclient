@@ -32,9 +32,25 @@ export interface ISend {
   revision_time: string
   send_type: number
   user_id: number
+  data: string
   text_data: string
   file_data: IFileData
 }
+export interface IUpdateSendRequest {
+  id: string
+  name: string
+  text_data: string
+  encrypted_key: string
+  iv: string
+  notes: string
+  password: string
+  max_access_count: number
+  hide_email: boolean
+  hide_data: boolean
+  expiration_time: string
+  deletion_time: string
+}
+
 
 export interface IFileDataRequest {
   file_name: string

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { convertDateTimeToReadable } from "../../utils/dateTime"
+
   export let options: string[] = []
   export let placeholder = ''
   export let value: string = ''
@@ -11,6 +13,7 @@
   export let topRightLabel:string = ''
   export let bottomLeftLabel:string = ''
   export let bottomRightLabel:string = ''
+  export let selected:string = null
 </script>
 
 <div class="form-control w-full max-w-xs">
@@ -24,7 +27,12 @@
         {/if}
       </label>
     <select {placeholder} {required} {disabled} {id} bind:value={value} class="select select-bordered focus:border-0 {error ? 'border-red-500' : ''} {variant === 'small' ? 'w-32' : variant === 'large' ? '' : 'w-56'}">
-        {#each options as option}
+        <!--  if selected is not null, then we have a default value -->
+        {#if selected}
+            <option value={selected}>{convertDateTimeToReadable(selected)}</option>
+        {/if}
+      
+      {#each options as option}
             <option value={option}>{option}</option>
         {/each}
     </select>
