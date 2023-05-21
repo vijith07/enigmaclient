@@ -31,7 +31,7 @@
       </div>
       <div class="flex items-center justify-center gap-4">
         {#if isLoggedIn}
-          <a href="/signup" class="btn bg-white text-black hover:bg-primary"
+          <a href="/send" class="btn bg-white text-black hover:bg-primary"
             >Manage Sends
           </a>
         {:else}
