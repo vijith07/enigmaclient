@@ -34,7 +34,7 @@
     expiration_time: null,
     deletion_time: null,
   }
-  let link = `http://localhost:5173/sa/${send.id}/${send.encrypted_key}`
+  let link = `https://enigma.vijith.dev/sa/${send.id}/${send.encrypted_key}`
   async function handleSubmit() {
     error = ''
     try {

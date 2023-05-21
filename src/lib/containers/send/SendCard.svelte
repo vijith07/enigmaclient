@@ -5,7 +5,7 @@
 
   export let populateSendList: () => Promise<void>
   export let send: ISend = null
-  const shareLink: string = `http://localhost:5173/sa/${send.id}/${send.encrypted_key}`
+  const shareLink: string = `https://enigma.vijith.dev/sa/${send.id}/${send.encrypted_key}`
 
   let isLoading = false
   let error = ''
