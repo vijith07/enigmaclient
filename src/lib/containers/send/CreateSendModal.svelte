@@ -62,8 +62,8 @@
   }
   async function handleSubmit() {
     try {
-      isLoading = true
       validateSend(newSend)
+      isLoading = true
       if (newSend.send_type == 0 && error == '') {
         await createSend(newSend)
       } else if (newSend.send_type == 1 && error == '') {
@@ -73,8 +73,8 @@
         }
         await createSend(newSend, files[0])
       }
-      clearForm()
       isLoading = false
+      clearForm()
       populateSendList()
     } catch (error) {
       isLoading = false

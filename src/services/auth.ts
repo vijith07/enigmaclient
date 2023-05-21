@@ -14,7 +14,7 @@ import {
 import { generatePBKDF2Hash } from '../utils/crypto/pbkdf2HashGenerator'
 import { exportAESKey, getAESKey } from '../utils/crypto/aesProvider'
 
-const APIURL = 'http://localhost:8000'
+const APIURL = "https://enigmaserver.vijith.dev"
 
 interface IUserData {
   public_key: string

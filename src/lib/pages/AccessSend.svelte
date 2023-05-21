@@ -230,6 +230,7 @@
             onClick={() => handleDownload()}
             disabled={isDownloadSuccessful}
             secondsBeforeDisabled={5 * 60}
+            showWarning={true}
           />
           <!--  Note that the link will expire after 5 minutes. -->
         {/if}

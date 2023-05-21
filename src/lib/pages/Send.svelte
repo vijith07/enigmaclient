@@ -58,7 +58,7 @@
   $: populateSendList()
 </script>
 
-<div class="min-h-screen bg-gradient-to-b from-slate-800 to-base-100">
+<div class="min-h-screen scroll-auto bg-gradient-to-b from-slate-800 to-base-100">
   <Navbar />
   {#if isLoading}
    <LoadingSpinner />

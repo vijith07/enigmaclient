@@ -48,7 +48,7 @@
         tabindex="0"
         class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
       >
-        <li><Link to="/vault">Vault</Link></li>
+        <!-- <li><Link to="/vault">Vault</Link></li> -->
         <li><Link to="/send">Send</Link></li>
       </ul>
     </div>
@@ -73,8 +73,8 @@
   </div>
   <div class="navbar-center hidden lg:flex">
     <ul class="menu menu-horizontal px-1">
-      <li><Link to="/vault">Vault</Link></li>
-      <li><Link to="/send">Send</Link></li>
+      <!-- <li><Link to="/vault">Vault</Link></li> -->
+      <!-- <li><Link to="/send">Send</Link></li> -->
     </ul>
   </div>
   <div class="navbar-end">

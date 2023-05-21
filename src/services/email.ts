@@ -1,5 +1,5 @@
 // send a reqeust to the server to send verification email
-const APIURL ='http://localhost:8000'
+const APIURL = "https://enigmaserver.vijith.dev"
 export const sendVerificationEmail = async () => {
     // get the token from the session storage
     const token = sessionStorage.getItem('token');
