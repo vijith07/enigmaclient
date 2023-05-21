@@ -31,8 +31,9 @@
 </script>
 
 {#if !isLoading && !error && !success}
-  <div class="card bg-transparent shadow-lg">
-    <div class="card-body flex flex-row items-center">
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="card bg-transparent shadow-lg m-2">
+    <div class="card-body flex flex-wrap items-center justify-center gap-2">
       <div class="card-title text-white">
         <EditSendModal oldSend={send} {populateSendList} />
       </div>
@@ -43,25 +44,27 @@
 
       <!-- <div class="card-body text-base text-primary">{send.data}</div> -->
       <!--  if max_access_count is set, display a badge -->
-      <div class="flex flex-row justify-center items-center gap-2">
-        {#if send.password && send.password.length > 0}
-          <div>🔑</div>
-        {/if}
-        {#if send.send_type === 0}
-          <div>✒️</div>
-        {:else if send.send_type === 1}
-          <div>📄</div>
-        {/if}
-        <div class="badge">{send.access_count} times accessed</div>
+      <div class="flex flex-wrap justify-center items-center gap-2">
+        <div class="flex flex-row gap-2">
+          {#if send.password && send.password.length > 0}
+            <div>🔑</div>
+          {/if}
+          {#if send.send_type === 0}
+            <div>✒️</div>
+          {:else if send.send_type === 1}
+            <div>📄</div>
+          {/if}
+        </div>
+        <div class="md:badge">{send.access_count} times accessed</div>
         {#if send.max_access_count > 0}
-          <div class="badge badge-info">
+          <div class="md:badge md:badge-info">
             {send.max_access_count - send.access_count} accesses left
           </div>
           {#if send.access_count >= send.max_access_count}
-            <div class="badge badge-warning">Limit Reached</div>
+            <div class="md:badge md:badge-warning">Limit Reached</div>
           {/if}
         {:else}
-          <div class="badge">No Limit</div>
+          <div class="md:badge">No Limit</div>
         {/if}
       </div>
 
@@ -71,11 +74,11 @@
         {/if}
       {/if}
 
-      <div class="card-actions justify-end ml-auto">
-        <button class="btn btn-ghost" on:click={generateLink}>
+      <div class="flex flex-row card-actions items-center m-2">
+        <button class="btn btn-xs md:btn-md  btn-outline btn-success" on:click={generateLink}>
           Copy Link
         </button>
-        <button class="btn btn-outline btn-error" on:click={onDelete}
+        <button class="btn btn-xs md:btn-md btn-outline btn-error" on:click={onDelete}
           >Delete</button
         >
       </div>

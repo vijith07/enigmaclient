@@ -225,7 +225,7 @@
             <div class="collapse-title text-sm">OPTIONS</div>
             <div class="collapse-content flex flex-col gap-2">
               <!-- expiry time select with multiple options -->
-              <div class="flex flex-row gap-1">
+              <div class="flex flex-wrap gap-1">
                 <!-- delete options -->
                 <Select
                   label="DELETE DATE"
@@ -248,7 +248,7 @@
 
                 <!-- Set Access Limit Counter with text and increment and decrement buttons -->
               </div>
-              <div class="w-1/2">
+              <div class="sm:w-1/2">
                 <Input
                   label="ACCESS LIMIT"
                   id="accessLimit"
@@ -259,7 +259,7 @@
               </div>
               <PasswordInput
                 label="Password"
-                topRightLabel="Optionally require a password for users to access this send"
+                topRightLabel="Optionally require a password to access."
                 autocomplete="new-password"
                 bind:value={newSend.password}
                 required={false}

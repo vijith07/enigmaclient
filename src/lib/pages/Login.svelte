@@ -131,7 +131,9 @@
           </div>
         </div>
       </div>
-      <div>© 2023 Enigma. All rights reserved.</div>
+      <div class="flex justify-center items-end h-16 m-4 text-gray-500">
+        © 2023 Enigma. All rights reserved.
+      </div>
     </form>
   {/if}
 </div>

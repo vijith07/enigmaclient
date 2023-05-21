@@ -1,6 +1,6 @@
 <script lang="ts">
   // @ts-ignore
-  import { Router, Route, Link } from 'svelte-navigator'
+  import { Link } from 'svelte-navigator'
   // check local storage for the token
   let isLoggedIn = false
   let userName = ''

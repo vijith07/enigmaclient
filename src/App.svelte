@@ -36,7 +36,7 @@
       <File />
     </Route>
     <Route path="*">
-      <h1>404 - Not Found</h1>
+      <Home />
     </Route>
   </Router>
 

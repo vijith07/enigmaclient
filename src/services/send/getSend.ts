@@ -101,7 +101,7 @@ export const decryptSend = async (
     hide_email: send.hide_email,
     max_access_count: send.max_access_count,
     access_count: send.access_count,
-    creation_time: send.creation_time,
+    created_at: send.created_at,
     id: send.id,
     text_data,
     file_data,
@@ -110,7 +110,7 @@ export const decryptSend = async (
     deletion_time: send.deletion_time,
     hide_data: send.hide_data,
     user_id: send.user_id,
-    revision_time: send.revision_time,
+    revised_at: send.revised_at,
     data: send.data,
   }
 }

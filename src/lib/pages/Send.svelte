@@ -39,6 +39,12 @@
     try {
       isLoading = true
       sendList = await getSends()
+      // sort the sendList by created_at decending
+      sendList.sort((a, b) => {
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      })
       filteredSendList = sendList
       isLoading = false
     } catch (err) {
@@ -58,10 +64,12 @@
   $: populateSendList()
 </script>
 
-<div class="min-h-screen scroll-auto bg-gradient-to-b from-slate-800 to-base-100">
+<div
+  class="min-h-screen scroll-auto bg-gradient-to-b from-slate-800 to-base-100"
+>
   <Navbar />
   {#if isLoading}
-   <LoadingSpinner />
+    <LoadingSpinner />
   {:else if error}
     {#if error == 'Error: User is not verified'}
       <div class="flex justify-center items-center h-screen">
@@ -75,22 +83,29 @@
   {:else}
     <div class="flex flex-wrap">
       <div class="flex flex-col w-full m-4">
-        <div class="flex flex-wrap justify-items-center items-center">
+        <div class="flex flex-wrap justify-around items-center m-2">
           <Filter {handleFilter} />
           <button class="btn btn-ghost text-lg" on:click={populateSendList}>
             🔃
           </button>
-          <div class="ml-auto">
+          <div class="md:ml-auto">
             <CreateSendModal {populateSendList} />
           </div>
           <!-- button to refresh the send list -->
         </div>
         <div class="divider" />
-        <!--  loop through all sends -->
-        {#each filteredSendList as send}
-          <SendCard {send} {populateSendList} />
-        {/each}
 
+        <div class="flex justify-between items-center m-4">
+          <div class="text-xl">Sends</div>
+          <div class="text-gray-500">
+            {filteredSendList.length} of {sendList.length}
+          </div>
+        </div>
+        <div class="flex flex-wrap justify-around items-center m-4">
+          {#each filteredSendList as send}
+            <SendCard {send} {populateSendList} />
+          {/each}
+        </div>
         <!--  if no sends -->
         {#if filteredSendList.length == 0 && sendList.length != 0}
           <div class="flex justify-center items-center">
@@ -113,7 +128,7 @@
       </div>
     </div>
   {/if}
-  <div class="flex justify-center items-end h-16 text-gray-500">
+  <div class="flex justify-center items-end h-16 m-4 text-gray-500">
     © 2023 Enigma. All rights reserved.
   </div>
 </div>

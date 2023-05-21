@@ -17,7 +17,7 @@ export interface ICreateSendRequest {
 }
 export interface ISend {
   access_count: number
-  creation_time: string
+  created_at: string
   deletion_time: string
   encrypted_key: string
   expiration_time: string
@@ -29,7 +29,7 @@ export interface ISend {
   name: string
   notes: string
   password: string
-  revision_time: string
+  revised_at: string
   send_type: number
   user_id: number
   data: string
