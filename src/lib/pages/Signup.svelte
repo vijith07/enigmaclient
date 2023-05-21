@@ -225,13 +225,14 @@
         <button class="btn btn-primary w-1/2 m-2" type="submit">
           Create Account
         </button>
-        <Link
-          to="/login?redirect={redirectUrl}"
-          class="btn btn-ghost m-2">Login</Link
+        <Link to="/login?redirect={redirectUrl}" class="btn btn-ghost m-2"
+          >Login</Link
         >
       </div>
     </div>
-    <div class="my-2">© 2023 Enigma. All rights reserved.</div>
+    <div class="flex justify-center items-end h-16 m-4 text-gray-500">
+      © 2023 Enigma. All rights reserved.
+    </div>
   </form>
 {/if}
 <!--  display contents in res if it is not null -->

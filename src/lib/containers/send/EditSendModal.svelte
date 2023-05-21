@@ -219,7 +219,7 @@
 
                 <!-- Set Access Limit Counter with text and increment and decrement buttons -->
               </div>
-              <div class="w-1/2">
+              <div class="sm:w-1/2">
                 <Input
                   label="ACCESS LIMIT"
                   id="{send.id}-accessLimit"
@@ -230,7 +230,7 @@
               </div>
               <PasswordInput
                 label="Password"
-                topRightLabel="Optionally require a password for users to access this send"
+                topRightLabel="Optionally require a password to access."
                 autocomplete="new-password"
                 bind:value={send.password}
                 required={false}
