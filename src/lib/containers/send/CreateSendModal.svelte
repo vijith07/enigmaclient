@@ -66,16 +66,19 @@
       isLoading = true
       if (newSend.send_type == 0 && error == '') {
         await createSend(newSend)
+        isLoading = false
+        clearForm()
+        populateSendList()
       } else if (newSend.send_type == 1 && error == '') {
         if (!files) {
           error = 'Please select a file'
           throw new Error(error)
         }
         await createSend(newSend, files[0])
+        isLoading = false
+        clearForm()
+        populateSendList()
       }
-      isLoading = false
-      clearForm()
-      populateSendList()
     } catch (error) {
       isLoading = false
       error = error.message
