@@ -2,7 +2,7 @@
   import { getFileSize } from '../../utils/file'
 
   export let files: FileList = null
-  export let maxFileSize = 5 * 1024 * 1024
+  export let maxFileSize = 100 * 1024 * 1024
   export let uploadFile: (file : File) => void
 
   let error = ''
