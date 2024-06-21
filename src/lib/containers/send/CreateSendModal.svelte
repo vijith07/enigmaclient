@@ -17,7 +17,7 @@
     '7 days',
     '30 days',
   ]
-  const maxFileSize = 5 * 1024 * 1024 // 5MB
+  const maxFileSize = 100 * 1024 * 1024 // 100MB
 
   let isLoading = false
   let error = ''
